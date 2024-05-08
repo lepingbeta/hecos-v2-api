@@ -6,6 +6,10 @@
         "windmilleng.vscode-go-autotest",
         "dunstontc.vscode-go-syntax",
         "zsh.go-snippets",
-        "obkoro1.korofileheader"
+        "obkoro1.korofileheader",
+        "mhutchie.git-graph",
+        "donjayamanne.githistory",
+        "eamodio.gitlens",
+        "waderyan.gitblame"
     ]
 }
