@@ -11,6 +11,7 @@ func setupUnauthRouter(r *gin.Engine) {
 	// r.POST("/admin/add_user", handlers.AddUserHandler)
 	r.GET("/unauth/send_invite_code", handlers.SendInviteCodeHandler)
 	r.POST("/unauth/create_project", handlers.CreateProjectHandler)
+	r.GET("/unauth/project_list", handlers.ProjectListHandler)
 	// {{占位符}}
 	// r.POST("/auth/add_user", handlers.AddUserHandler)
 	// return r

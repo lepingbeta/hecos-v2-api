@@ -2,7 +2,7 @@
  * @Author       : Symphony zhangleping@cezhiqiu.com
  * @Date         : 2024-05-06 05:06:20
  * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-05-08 22:54:49
+ * @LastEditTime : 2024-05-09 05:56:46
  * @FilePath     : /hecos-v2-api/main.go
  * @Description  :
  *
@@ -50,7 +50,7 @@ func main() {
 
 	config := cors.DefaultConfig()
 	config.AllowOriginFunc = func(origin string) bool {
-		allowOriginList := []string{"http://192.168.31.11:19823", "http://dev-docker.cezhiqiu.cn:19823"}
+		allowOriginList := []string{"http://192.168.31.11:29517", "http://dev-docker.cezhiqiu.cn:29517"}
 		return utils.IsElementInSlice(origin, allowOriginList)
 	}
 	config.AllowHeaders = []string{"*"}
