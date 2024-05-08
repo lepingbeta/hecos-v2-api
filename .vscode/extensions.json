@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "golang.go",
+        "premparihar.gotestexplorer",
+        "766b.go-outliner",
+        "windmilleng.vscode-go-autotest",
+        "dunstontc.vscode-go-syntax",
+        "zsh.go-snippets",
+        "obkoro1.korofileheader"
+    ]
+}
