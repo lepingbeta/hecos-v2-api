@@ -10,6 +10,7 @@
         "mhutchie.git-graph",
         "donjayamanne.githistory",
         "eamodio.gitlens",
-        "waderyan.gitblame"
+        "waderyan.gitblame",
+        "michelemelluso.gitignore"
     ]
 }

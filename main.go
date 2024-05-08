@@ -2,7 +2,7 @@
  * @Author       : Symphony zhangleping@cezhiqiu.com
  * @Date         : 2024-05-06 05:06:20
  * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-05-08 20:18:06
+ * @LastEditTime : 2024-05-08 22:54:49
  * @FilePath     : /hecos-v2-api/main.go
  * @Description  :
  *
@@ -11,22 +11,30 @@
 package main
 
 import (
+	"os"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	utils "github.com/lepingbeta/go-common-v2-dh-utils"
-	"tangxiaoer.shop/dahe/hecos-v2-api/config"
 	"tangxiaoer.shop/dahe/hecos-v2-api/lib"
 	"tangxiaoer.shop/dahe/hecos-v2-api/routes"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		dhlog.Error(err.Error())
+	}
+
 	// 获取单例实例
 	db := mongodb.GetInstance()
 
 	// 连接到 MongoDB
-	err := db.Connect(config.MongoURI, 10)
+	mongoUri := os.Getenv("MongoURI")
+	err = db.Connect(mongoUri, 10)
 	if err != nil {
 		dhlog.Info("Failed to connect to MongoDB:", err)
 		return

@@ -1,1 +1,1 @@
-# hecos-v2-api
+修改.env.example文件为.env，并且修改其中的mongo信息为你的
