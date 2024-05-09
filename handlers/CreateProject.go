@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"net/http"
+	"unsafe"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/lepingbeta/go-common-v2-dh-http/types"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
-	"tangxiaoer.shop/dahe/hecos-v2-api/services/unauth/CreateProject"
+	"tangxiaoer.shop/dahe/hecos-v2-api/services/project/CreateProject"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 )
 
@@ -21,54 +22,56 @@ func CreateProjectHandler(c *gin.Context) {
 		Status: types.ResponseStatus.Success,
 		Msg:    "添加成功",
 		// MsgKey: "admin_add_user_success",
-		MsgKey: "unauth_create_project_success",
+		MsgKey: "project_create_project_success",
 		Data:   map[string]interface{}{},
 	}
 
-	// 使用 BindJSON 方法将 JSON 数据绑定到结构体中
-	if err := c.ShouldBindJSON(&form); err != nil {
-		respData = types.ResponseData{
-			Status: types.ResponseStatus.Error,
-			Msg:    err.Error(),
-			// MsgKey: "admin_add_user_bind_json_error",
-			MsgKey: "unauth_create_project_bind_json_error",
-			Data:   nil,
+	if unsafe.Sizeof(form) > 0 {
+		// 使用 BindJSON 方法将 JSON 数据绑定到结构体中
+		if err := c.ShouldBindJSON(&form); err != nil {
+			respData = types.ResponseData{
+				Status: types.ResponseStatus.Error,
+				Msg:    err.Error(),
+				// MsgKey: "admin_add_user_bind_json_error",
+				MsgKey: "project_create_project_bind_json_error",
+				Data:   nil,
+			}
+
+			dhlog.Error("参数错误")
+
+			// 如果绑定失败，返回错误信息
+			c.JSON(http.StatusBadRequest, respData)
+			return
 		}
 
-		dhlog.Error("参数错误")
+		v, ok := c.MustGet("validator").(*validator.Validate)
+		if !ok {
+			respData = types.ResponseData{
+				Status: types.ResponseStatus.Error,
+				Msg:    "Cannot get global validator",
+				// MsgKey: "admin_add_user_invalid_validator",
+				MsgKey: "project_create_project_invalid_validator",
+				Data:   nil,
+			}
 
-		// 如果绑定失败，返回错误信息
-		c.JSON(http.StatusBadRequest, respData)
-		return
-	}
-
-	v, ok := c.MustGet("validator").(*validator.Validate)
-	if !ok {
-		respData = types.ResponseData{
-			Status: types.ResponseStatus.Error,
-			Msg:    "Cannot get global validator",
-			// MsgKey: "admin_add_user_invalid_validator",
-			MsgKey: "unauth_create_project_invalid_validator",
-			Data:   nil,
+			c.JSON(http.StatusInternalServerError, respData)
+			return
 		}
 
-		c.JSON(http.StatusInternalServerError, respData)
-		return
-	}
+		if err := v.Struct(form); err != nil {
+			if errs, ok := err.(validator.ValidationErrors); ok {
+				for _, e := range errs {
+					dhlog.Error(dhvalidator.CustomErrors(e))
 
-	if err := v.Struct(form); err != nil {
-		if errs, ok := err.(validator.ValidationErrors); ok {
-			for _, e := range errs {
-				dhlog.Error(dhvalidator.CustomErrors(e))
-
-				respData = types.ResponseData{
-					Status: types.ResponseStatus.Error,
-					Msg:    err.Error(),
-					MsgKey: dhvalidator.CustomErrors(e),
-					Data:   nil,
+					respData = types.ResponseData{
+						Status: types.ResponseStatus.Error,
+						Msg:    err.Error(),
+						MsgKey: dhvalidator.CustomErrors(e),
+						Data:   nil,
+					}
+					c.JSON(http.StatusInternalServerError, respData)
+					return
 				}
-				c.JSON(http.StatusInternalServerError, respData)
-				return
 			}
 		}
 	}

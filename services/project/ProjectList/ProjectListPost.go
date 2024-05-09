@@ -11,5 +11,5 @@ func ProjectListPost(params t.ProjectListParams, result []bson.M, c *gin.Context
 	// retData := map[string]interface{}{
 	// }
 
-	return result, "查询成功", "unauth_project_list_success", nil
+	return result, "查询成功", "project_project_list_success", nil
 }

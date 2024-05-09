@@ -1,3 +1,13 @@
+/*
+ * @Author       : Symphony zhangleping@cezhiqiu.com
+ * @Date         : 2024-05-08 21:08:13
+ * @LastEditors  : Symphony zhangleping@cezhiqiu.com
+ * @LastEditTime : 2024-05-09 19:46:42
+ * @FilePath     : /hecos-v2-api/routes/routes_unauth.go
+ * @Description  :
+ *
+ * Copyright (c) 2024 by 大合前研, All Rights Reserved.
+ */
 package routes
 
 import (
@@ -9,9 +19,9 @@ func setupUnauthRouter(r *gin.Engine) {
 	// r := gin.Default()
 
 	// r.POST("/admin/add_user", handlers.AddUserHandler)
-	r.GET("/unauth/send_invite_code", handlers.SendInviteCodeHandler)
-	r.POST("/unauth/create_project", handlers.CreateProjectHandler)
-	r.GET("/unauth/project_list", handlers.ProjectListHandler)
+	r.POST("/project/create_project", handlers.CreateProjectHandler)
+	r.GET("/project/project_list", handlers.ProjectListHandler)
+
 	// {{占位符}}
 	// r.POST("/auth/add_user", handlers.AddUserHandler)
 	// return r

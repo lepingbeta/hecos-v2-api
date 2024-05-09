@@ -2,7 +2,7 @@
  * @Author       : Symphony zhangleping@cezhiqiu.com
  * @Date         : 2024-05-06 05:06:20
  * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-05-09 05:56:46
+ * @LastEditTime : 2024-05-09 07:38:56
  * @FilePath     : /hecos-v2-api/main.go
  * @Description  :
  *
@@ -57,7 +57,7 @@ func main() {
 	// // config.AllowAllOrigins = true
 
 	lib.InitValidator(r)
-	// r.Use(cors.New(config))
+	r.Use(cors.New(config))
 	routes.SetupRouter(r)
 
 	// Listen and Server in 0.0.0.0:8080

@@ -1,11 +1,12 @@
 package CreateProject
 
 import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 )
+
 
 func CreateProject(user t.CreateProjectParams) (map[string]interface{}, string, string, error) {
 
@@ -19,7 +20,7 @@ func CreateProject(user t.CreateProjectParams) (map[string]interface{}, string, 
 
 	if err != nil {
 		dhlog.Error(err.Error())
-		return nil, "数据入库失败", "unauth_create_project_insert_to_db_failed", err
+		return nil, "数据入库失败", "project_create_project_insert_to_db_failed", err
 	}
 
 	// 获取并打印 _id
@@ -27,7 +28,7 @@ func CreateProject(user t.CreateProjectParams) (map[string]interface{}, string, 
 	docID, ok := result.InsertedID.(primitive.ObjectID)
 	if !ok {
 		dhlog.Error("Expected the inserted document ID to be a primitive.ObjectID")
-		return nil, "Expected the inserted document ID to be a primitive.ObjectID", "unauth_create_project_insert_id_error", err
+		return nil, "Expected the inserted document ID to be a primitive.ObjectID", "project_create_project_insert_id_error", err
 	}
 
 	finalResult, msg, msgKey, err := CreateProjectPost(user, docID)

@@ -20,7 +20,7 @@ func ProjectList(params t.ProjectListParams, c *gin.Context) ([]bson.M, string, 
 
 	if err != nil {
 		dhlog.Error(err.Error())
-		return nil, err.Error(), "unauth_project_list_find_one_error", err
+		return nil, err.Error(), "project_project_list_find_one_error", err
 	}
 
 	finalResult, msg, msgKey, err := ProjectListPost(params, result, c)

@@ -12,7 +12,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/lepingbeta/go-common-v2-dh-middleware"
+	middleware "github.com/lepingbeta/go-common-v2-dh-middleware"
 	"tangxiaoer.shop/dahe/hecos-v2-api/config"
 )
 

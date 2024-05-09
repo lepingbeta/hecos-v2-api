@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"net/http"
+	"unsafe"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/lepingbeta/go-common-v2-dh-http/types"
-	"tangxiaoer.shop/dahe/hecos-v2-api/services/unauth/ProjectList"
+	"tangxiaoer.shop/dahe/hecos-v2-api/services/project/ProjectList"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
@@ -19,53 +20,54 @@ func ProjectListHandler(c *gin.Context) {
 	respData := types.ResponseData{
 		Status: types.ResponseStatus.Success,
 		Msg:    "查询成功",
-		MsgKey: "unauth_project_list_success",
+		MsgKey: "project_project_list_success",
 		Data:   map[string]interface{}{},
 	}
 
-	// 使用 BindJSON 方法将 JSON 数据绑定到结构体中
-	if err := c.ShouldBindJSON(&form); err != nil {
-		respData = types.ResponseData{
-			Status: types.ResponseStatus.Error,
-			Msg:    err.Error(),
-			MsgKey: "unauth_project_list_params_error",
-			Data:   nil,
-		}
-		// 如果绑定失败，返回错误信息
-		c.JSON(http.StatusBadRequest, respData)
-		return
-	}
-
-	v, ok := c.MustGet("validator").(*validator.Validate)
-	if !ok {
-		respData = types.ResponseData{
-			Status: types.ResponseStatus.Error,
-			Msg:    "Cannot get global validator",
-			MsgKey: "unauth_project_list_invalid_validator",
-			Data:   nil,
+	if unsafe.Sizeof(form) > 0 {
+		// 使用 BindJSON 方法将 JSON 数据绑定到结构体中
+		if err := c.ShouldBindJSON(&form); err != nil {
+			respData = types.ResponseData{
+				Status: types.ResponseStatus.Error,
+				Msg:    err.Error(),
+				MsgKey: "project_project_list_params_error",
+				Data:   nil,
+			}
+			// 如果绑定失败，返回错误信息
+			c.JSON(http.StatusBadRequest, respData)
+			return
 		}
 
-		c.JSON(http.StatusInternalServerError, respData)
-		return
-	}
+		v, ok := c.MustGet("validator").(*validator.Validate)
+		if !ok {
+			respData = types.ResponseData{
+				Status: types.ResponseStatus.Error,
+				Msg:    "Cannot get global validator",
+				MsgKey: "project_project_list_invalid_validator",
+				Data:   nil,
+			}
 
-	if err := v.Struct(form); err != nil {
-		if errs, ok := err.(validator.ValidationErrors); ok {
-			for _, e := range errs {
-				dhlog.Error(dhvalidator.CustomErrors(e))
+			c.JSON(http.StatusInternalServerError, respData)
+			return
+		}
 
-				respData = types.ResponseData{
-					Status: types.ResponseStatus.Error,
-					Msg:    err.Error(),
-					MsgKey: dhvalidator.CustomErrors(e),
-					Data:   nil,
+		if err := v.Struct(form); err != nil {
+			if errs, ok := err.(validator.ValidationErrors); ok {
+				for _, e := range errs {
+					dhlog.Error(dhvalidator.CustomErrors(e))
+
+					respData = types.ResponseData{
+						Status: types.ResponseStatus.Error,
+						Msg:    err.Error(),
+						MsgKey: dhvalidator.CustomErrors(e),
+						Data:   nil,
+					}
+					c.JSON(http.StatusInternalServerError, respData)
+					return
 				}
-				c.JSON(http.StatusInternalServerError, respData)
-				return
 			}
 		}
 	}
-
 	data, msg, msgKey, err := ProjectList.ProjectList(form, c)
 
 	if err != nil {
