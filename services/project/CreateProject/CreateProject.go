@@ -8,15 +8,15 @@ import (
 )
 
 
-func CreateProject(user t.CreateProjectParams) (map[string]interface{}, string, string, error) {
+func CreateProject(params t.CreateProjectParams) (map[string]interface{}, string, string, error) {
 
-	user, msg, msgKey, err := CreateProjectPre(user)
+	data, msg, msgKey, err := CreateProjectPre(params)
 	if err != nil {
 		dhlog.Error(err.Error())
 		return nil, msg, msgKey, err
 	}
 
-	result, err := mongodb.InsertOneWithCreateTime("project", user)
+	result, err := mongodb.InsertOneBsonD("project", data)
 
 	if err != nil {
 		dhlog.Error(err.Error())
@@ -31,7 +31,7 @@ func CreateProject(user t.CreateProjectParams) (map[string]interface{}, string, 
 		return nil, "Expected the inserted document ID to be a primitive.ObjectID", "project_create_project_insert_id_error", err
 	}
 
-	finalResult, msg, msgKey, err := CreateProjectPost(user, docID)
+	finalResult, msg, msgKey, err := CreateProjectPost(data, docID)
 	if err != nil {
 		dhlog.Error(err.Error())
 		return nil, msg, msgKey, err
