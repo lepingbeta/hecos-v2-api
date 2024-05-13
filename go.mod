@@ -16,6 +16,7 @@ go 1.22.1
 require (
 	github.com/gin-contrib/cors v1.7.1
 	github.com/gin-gonic/gin v1.10.0
+	github.com/joho/godotenv v1.5.1
 	github.com/lepingbeta/go-common-v2-dh-http v0.0.0-00010101000000-000000000000
 	github.com/lepingbeta/go-common-v2-dh-log v0.0.0-20240508004004-1a18f20b88ba
 	github.com/lepingbeta/go-common-v2-dh-middleware v0.0.0-00010101000000-000000000000
@@ -30,7 +31,7 @@ require (
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
-	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/lepingbeta/go-common-v2-dh-json v0.0.0-20240508004009-9396ce750a7f // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )

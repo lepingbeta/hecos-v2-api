@@ -33,7 +33,7 @@ func CreateProjectHandler(c *gin.Context) {
 				Status: types.ResponseStatus.Error,
 				Msg:    err.Error(),
 				// MsgKey: "admin_add_user_bind_json_error",
-				MsgKey: "project_create_project_bind_json_error",
+				MsgKey: "project_create_project_params_error",
 				Data:   nil,
 			}
 
