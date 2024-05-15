@@ -2,7 +2,7 @@
  * @Author       : Symphony zhangleping@cezhiqiu.com
  * @Date         : 2024-05-08 21:08:13
  * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-05-10 14:49:43
+ * @LastEditTime : 2024-05-15 19:56:11
  * @FilePath     : /hecos-v2-api/routes/routes_unauth.go
  * @Description  :
  *
@@ -24,6 +24,7 @@ func setupUnauthRouter(r *gin.Engine) {
 
 	r.DELETE("/project/delete_project", handlers.DeleteProjectHandler)
 	r.PUT("/project/update_project", handlers.UpdateProjectHandler)
+	r.POST("/config/create_config", handlers.CreateConfigHandler)
 	// {{占位符}}
 	// r.POST("/auth/add_user", handlers.AddUserHandler)
 	// return r
