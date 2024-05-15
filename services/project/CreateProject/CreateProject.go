@@ -1,16 +1,23 @@
 package CreateProject
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 )
 
+func preProcessing(params t.CreateProjectParams) (map[string]interface{}, string, string, error) {
+	// {{占位符 preProcessing}}
+	return nil, "", "", nil
+}
 
 func CreateProject(params t.CreateProjectParams) (map[string]interface{}, string, string, error) {
-	// {{占位符}}
-	
+	finalResult, msg, msgKey, err := preProcessing(params)
+	if err != nil {
+		return finalResult, msg, msgKey, err
+	}
+
 	data, msg, msgKey, err := CreateProjectPre(params)
 	if err != nil {
 		dhlog.Error(err.Error())
@@ -32,7 +39,7 @@ func CreateProject(params t.CreateProjectParams) (map[string]interface{}, string
 		return nil, "Expected the inserted document ID to be a primitive.ObjectID", "project_create_project_insert_id_error", err
 	}
 
-	finalResult, msg, msgKey, err := CreateProjectPost(data, docID)
+	finalResult, msg, msgKey, err = CreateProjectPost(data, docID)
 	if err != nil {
 		dhlog.Error(err.Error())
 		return nil, msg, msgKey, err

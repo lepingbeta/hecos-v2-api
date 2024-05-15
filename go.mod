@@ -31,7 +31,6 @@ require (
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
-	github.com/lepingbeta/go-common-v2-dh-json v0.0.0-20240508004009-9396ce750a7f // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 )

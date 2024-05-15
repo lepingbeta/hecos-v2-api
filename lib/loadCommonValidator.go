@@ -8,9 +8,11 @@ import (
 func loadCommonValidator(validate *validator.Validate) {
 	validate.RegisterValidation(`firstName`, dhvalidator.IsValidFirstName)
 	validate.RegisterValidation(`chineseMobile`, dhvalidator.IsValidChineseMobile)
+	validate.RegisterValidation(`inviteCodeNum`, dhvalidator.IsValidInviteCodeNum)
 	validate.RegisterValidation(`lastName`, dhvalidator.IsValidLastName)
 	validate.RegisterValidation(`nickname`, dhvalidator.IsValidNickname)
 	validate.RegisterValidation(`gender`, dhvalidator.IsValidGender)
+	validate.RegisterValidation(`mongoId`, dhvalidator.IsValidMongoId)
 	validate.RegisterValidation(`image`, dhvalidator.IsValidImage)
 	validate.RegisterValidation(`account`, dhvalidator.IsValidAccount)
 	validate.RegisterValidation(`password`, dhvalidator.IsValidPassword)
