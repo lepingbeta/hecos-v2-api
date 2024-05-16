@@ -18,6 +18,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lepingbeta/go-common-v2-dh-http v0.0.0-00010101000000-000000000000
+	github.com/lepingbeta/go-common-v2-dh-json v0.0.0-20240508004009-9396ce750a7f
 	github.com/lepingbeta/go-common-v2-dh-log v0.0.0-20240508004004-1a18f20b88ba
 	github.com/lepingbeta/go-common-v2-dh-middleware v0.0.0-00010101000000-000000000000
 	github.com/lepingbeta/go-common-v2-dh-mongo v0.0.0-00010101000000-000000000000
