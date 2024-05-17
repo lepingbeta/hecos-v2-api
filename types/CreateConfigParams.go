@@ -8,5 +8,9 @@ type CreateConfigParams struct {
 	ProjectId string `bson:"project_id" json:"project_id" validate:"required,mongoId" `
 	// 配置内容
 	Content string `bson:"content" json:"content" validate:"required" `
+	// 配置文件类型
+	ConfigType string `bson:"config_type" json:"config_type" validate:"required" `
+	// 主题名称
+	ThemeName string `bson:"theme_name" json:"theme_name" validate:"required" `
 }
 
