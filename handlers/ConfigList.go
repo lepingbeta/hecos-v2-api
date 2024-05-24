@@ -26,7 +26,7 @@ func ConfigListHandler(c *gin.Context) {
 
 	if unsafe.Sizeof(form) > 0 {
 		// 使用 BindJSON 方法将 JSON 数据绑定到结构体中
-		if err := c.ShouldBindJSON(&form); err != nil {
+		if err := c.ShouldBindQuery(&form); err != nil {
 			respData = types.ResponseData{
 				Status: types.ResponseStatus.Error,
 				Msg:    err.Error(),
