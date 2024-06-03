@@ -75,7 +75,7 @@ func findWithOneByOne(params t.ConfigListParams, filter bson.M, result []bson.M,
 	// 创建一个映射，以project_id为键，以project_name为值
 	idToDetailsMap := make(map[primitive.ObjectID]bson.M)
 	for _, res2 := range result2 {
-		keyId, _ := primitive.ObjectIDFromHex(res2["_id"].(string))
+		keyId := res2["_id"].(primitive.ObjectID)
 
 		// 复制res2的内容到新的bson.M映射中
 		details := bson.M{}
