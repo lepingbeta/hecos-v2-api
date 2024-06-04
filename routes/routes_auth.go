@@ -12,11 +12,13 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"tangxiaoer.shop/dahe/hecos-v2-api/handlers"
 )
 
 func setupAuthRouter(r *gin.Engine) {
 	// r := gin.Default()
 
+	r.GET("/user/get_user_info", handlers.GetUserInfoHandler)
 	// {{占位符}}
 	// return r
 }

@@ -47,10 +47,13 @@ func CodeLogin(params t.CodeLoginParams, c *gin.Context) (any, string, string, e
 		return nil, msg, msgKey, err
 	}
 
-	// fieldList := bson.D{{{fieldInList}}}
+	fieldList := bson.D{
+		{Key: "_id", Value: 1},
+		{Key: "account", Value: 1},
+	}
 	// 创建Find选项，设置Projection
 	findOptions := options.FindOne()
-	// findOptions.SetProjection(fieldList)
+	findOptions.SetProjection(fieldList)
 	result, err := mongodb.FindOne("user", filter, findOptions)
 
 	if err != nil {
@@ -203,7 +206,7 @@ func addJwtToken(params t.CodeLoginParams, filter bson.M, result any, c *gin.Con
 		return filter, resultMap, errMsg, "user_code_login_addToken_conver2bson.M_failed", errors.New(errMsg)
 	}
 	var err error
-	resultMap["jwt_access_token"], resultMap["jwt_refresh_token"], err = middleware.JWTGenerateToken(config.JwtSecret, config.JwtRefreshSecret, resultMap["_id"].(primitive.ObjectID).Hex(), resultMap["account"].(string), config.JwtExpSec, config.JwtRefreshSec)
+	resultMap["token"], resultMap["refreshToken"], err = middleware.JWTGenerateToken(config.JwtSecret, config.JwtRefreshSecret, resultMap["_id"].(primitive.ObjectID).Hex(), resultMap["account"].(string), config.JwtExpSec, config.JwtRefreshSec)
 	if err != nil {
 		errMsg := err.Error()
 		dhlog.Error(errMsg)
