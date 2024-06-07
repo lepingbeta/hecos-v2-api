@@ -9,22 +9,21 @@ import (
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	"github.com/lepingbeta/go-common-v2-dh-http/types"
-	"go.mongodb.org/mongo-driver/bson"
-	"tangxiaoer.shop/dahe/hecos-v2-api/services/project/CreateProject"
+	"tangxiaoer.shop/dahe/hecos-v2-api/services/test/Test"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
 )
 
-func CreateProjectHandler(c *gin.Context) {
+func TestHandler(c *gin.Context) {
 	// 处理登录逻辑
 	// 声明一个变量来存储 JSON 数据
-	var form t.CreateProjectParams
+	var form t.EmptyParams
 
 	respData := types.ResponseData{
 		Status: types.ResponseStatus.Success,
 		Msg:    "添加成功",
 		// MsgKey: "admin_add_user_success",
-		MsgKey: "project_create_project_success",
+		MsgKey: "test_test_success",
 		Data:   map[string]interface{}{},
 	}
 
@@ -35,7 +34,7 @@ func CreateProjectHandler(c *gin.Context) {
 				Status: types.ResponseStatus.Error,
 				Msg:    err.Error(),
 				// MsgKey: "admin_add_user_bind_json_error",
-				MsgKey: "project_create_project_params_error",
+				MsgKey: "test_test_params_error",
 				Data:   nil,
 			}
 
@@ -52,7 +51,7 @@ func CreateProjectHandler(c *gin.Context) {
 				Status: types.ResponseStatus.Error,
 				Msg:    "Cannot get global validator",
 				// MsgKey: "admin_add_user_invalid_validator",
-				MsgKey: "project_create_project_invalid_validator",
+				MsgKey: "test_test_invalid_validator",
 				Data:   nil,
 			}
 
@@ -79,8 +78,8 @@ func CreateProjectHandler(c *gin.Context) {
 	}
 
 	dataM, _ := mongodb.Struct2BsonM(form)
-	pointer := CreateProject.CreateProject{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}}
-	pointer.CreateProject()
+	pointer := Test.Test{Params: form, C: c, DataM: dataM, Filter: dataM}
+	pointer.Test()
 	data := pointer.Result
 	msg := pointer.Msg
 	msgKey := pointer.MsgKey

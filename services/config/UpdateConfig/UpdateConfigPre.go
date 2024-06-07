@@ -1,9 +1,19 @@
+/*
+ * @Author       : Symphony zhangleping@cezhiqiu.com
+ * @Date         : 2024-05-16 21:19:54
+ * @LastEditors  : Symphony zhangleping@cezhiqiu.com
+ * @LastEditTime : 2024-06-04 22:29:54
+ * @FilePath     : /hecos-v2-api/services/config/UpdateConfig/UpdateConfigPre.go
+ * @Description  :
+ *
+ * Copyright (c) 2024 by 大合前研, All Rights Reserved.
+ */
 package UpdateConfig
 
 import (
 	"github.com/gin-gonic/gin"
+	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	"go.mongodb.org/mongo-driver/bson"
-	utils "github.com/lepingbeta/go-common-v2-dh-utils"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 )
 
@@ -14,9 +24,9 @@ import (
 // }
 
 func UpdateConfigPre(params t.UpdateConfigParams, c *gin.Context) (bson.M, bson.D, string, string, error) {
-	objUserId := utils.ObjectIDFromHex(params.Id)
+	objUserId := mongodb.ObjectIDFromHex(params.Id)
 	filter := bson.M{"_id": objUserId}
-	data, _ := utils.Struct2BsonD(params)
+	data, _ := mongodb.Struct2BsonD(params)
 
 	var newDoc bson.D
 	for _, elem := range data {

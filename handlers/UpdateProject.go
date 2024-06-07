@@ -6,11 +6,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
+	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	"github.com/lepingbeta/go-common-v2-dh-http/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"tangxiaoer.shop/dahe/hecos-v2-api/services/project/UpdateProject"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
+	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
 )
 
 func UpdateProjectHandler(c *gin.Context) {
@@ -20,7 +22,7 @@ func UpdateProjectHandler(c *gin.Context) {
 
 	respData := types.ResponseData{
 		Status: types.ResponseStatus.Success,
-		Msg:    "更新成功",
+		Msg:    "添加成功",
 		// MsgKey: "admin_add_user_success",
 		MsgKey: "project_update_project_success",
 		Data:   map[string]interface{}{},
@@ -76,7 +78,13 @@ func UpdateProjectHandler(c *gin.Context) {
 		}
 	}
 
-	data, msg, msgKey, err := UpdateProject.UpdateProject(form, c)
+	dataM, _ := mongodb.Struct2BsonM(form)
+	pointer := UpdateProject.UpdateProject{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}}
+	pointer.UpdateProject()
+	data := pointer.Result
+	msg := pointer.Msg
+	msgKey := pointer.MsgKey
+	err := pointer.Err
 
 	if err != nil {
 		respData = types.ResponseData{

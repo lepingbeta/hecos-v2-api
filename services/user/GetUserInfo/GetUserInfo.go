@@ -1,10 +1,19 @@
+/*
+ * @Author       : Symphony zhangleping@cezhiqiu.com
+ * @Date         : 2024-06-04 07:38:28
+ * @LastEditors  : Symphony zhangleping@cezhiqiu.com
+ * @LastEditTime : 2024-06-04 22:28:31
+ * @FilePath     : /hecos-v2-api/services/user/GetUserInfo/GetUserInfo.go
+ * @Description  :
+ *
+ * Copyright (c) 2024 by 大合前研, All Rights Reserved.
+ */
 package GetUserInfo
 
 import (
 	"github.com/gin-gonic/gin"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
-	utils "github.com/lepingbeta/go-common-v2-dh-utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
@@ -12,7 +21,7 @@ import (
 )
 
 func preProcessing(params t.EmptyParams, filterEmpty bson.M, resultEmpty any, c *gin.Context) (bson.M, any, string, string, error) {
-	filter, _ := utils.Struct2BsonM(params)
+	filter, _ := mongodb.Struct2BsonM(params)
 	var result = bson.M{}
 	var msg, msgKey string = "", ""
 	var err error = nil

@@ -10,7 +10,6 @@ import (
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	middleware "github.com/lepingbeta/go-common-v2-dh-middleware"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
-	utils "github.com/lepingbeta/go-common-v2-dh-utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -20,7 +19,7 @@ import (
 )
 
 func preProcessing(params t.CodeLoginParams, filterEmpty bson.M, resultEmpty any, c *gin.Context) (bson.M, any, string, string, error) {
-	filter, _ := utils.Struct2BsonM(params)
+	filter, _ := mongodb.Struct2BsonM(params)
 	var result = bson.M{}
 	var msg, msgKey string = "", ""
 	var err error = nil

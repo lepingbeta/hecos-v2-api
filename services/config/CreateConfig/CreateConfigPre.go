@@ -2,7 +2,7 @@
  * @Author       : Symphony zhangleping@cezhiqiu.com
  * @Date         : 2024-05-15 20:05:45
  * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-05-16 14:01:45
+ * @LastEditTime : 2024-06-04 22:29:13
  * @FilePath     : /hecos-v2-api/services/config/CreateConfig/CreateConfigPre.go
  * @Description  :
  *
@@ -11,7 +11,7 @@
 package CreateConfig
 
 import (
-	utils "github.com/lepingbeta/go-common-v2-dh-utils"
+	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	"go.mongodb.org/mongo-driver/bson"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 )
@@ -23,7 +23,7 @@ import (
 // }
 
 func CreateConfigPre(params t.CreateConfigParams) (bson.D, string, string, error) {
-	bsonD, _ := utils.Struct2BsonD(params)
+	bsonD, _ := mongodb.Struct2BsonD(params)
 	bsonD = append(bsonD, bson.E{Key: "is_delete", Value: 0})
 	bsonD = append(bsonD, bson.E{Key: "update_time", Value: ""})
 	return bsonD, "", "config_create_config_insert_pre_result", nil
