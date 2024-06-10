@@ -22,7 +22,7 @@ type CreateProject struct {
 	Filter       bson.M                // 入参bson.M版 (查询用)
 	DataD        bson.D                // 入参bson.D版 (入库用)
 	C            *gin.Context
-	Result       bson.M
+	Result       any
 	Msg          string
 	MsgKey       string
 	Err          error
@@ -30,24 +30,29 @@ type CreateProject struct {
 }
 
 func (p *CreateProject) CreateProject() {
+
 	p.AddAccessIdAndSecret()
+	if p.Err != nil {
+		return
+	}
 	p.Insert()
-	// {{占位符 composition caller}}
+	if p.Err != nil {
+		return
+	} // {{占位符 composition caller}}
 
 	fmt.Println("Hello, my name is")
 }
 
 func (p *CreateProject) AddAccessIdAndSecret() {
-
 	var err error
-	p.Result["accessId"], err = utils.GenerateAccessID(16)
+	p.Result.(bson.M)["accessId"], err = utils.GenerateAccessID(16)
 	if err != nil {
 		p.Msg = err.Error()
 		p.MsgKey = "project_create_project_AddAccessIdAndSecret_GenerateAccessID_error"
 		dhlog.Error(err.Error())
 		return
 	}
-	p.Result["accessSecret"], err = utils.GenerateAccessSecret()
+	p.Result.(bson.M)["accessSecret"], err = utils.GenerateAccessSecret()
 	if err != nil {
 		p.Msg = err.Error()
 		p.MsgKey = "project_create_project_AddAccessIdAndSecret_GenerateAccessSecret_error"
@@ -55,10 +60,10 @@ func (p *CreateProject) AddAccessIdAndSecret() {
 		return
 	}
 
-	p.DataM["accessId"] = p.Result["accessId"]
+	p.DataM["accessId"] = p.Result.(bson.M)["accessId"]
 
 	// 生成随机盐并散列密码
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(p.Result["accessSecret"].(string)), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(p.Result.(bson.M)["accessSecret"].(string)), bcrypt.DefaultCost)
 	if err != nil {
 		p.Msg = err.Error()
 		p.MsgKey = "project_create_project_AddAccessIdAndSecret_hash_password_failed"
@@ -81,7 +86,7 @@ func (p *CreateProject) Insert() {
 
 	if p.Err != nil {
 		dhlog.Error(p.Err.Error())
-		p.Msg = "数据入库失败"
+		p.Msg = utils.DebugMsg("数据入库失败：" + p.Err.Error())
 		p.MsgKey = "project_create_project_Insert_to_db_failed"
 		return
 	}
@@ -91,14 +96,14 @@ func (p *CreateProject) Insert() {
 	var ok bool
 	p.DocID, ok = result.InsertedID.(primitive.ObjectID)
 	if !ok {
-		p.Msg = "Expected the inserted document ID to be a primitive.ObjectID"
+		p.Msg = utils.DebugMsg("Expected the inserted document ID to be a primitive.ObjectID")
 		p.MsgKey = "project_create_project_Insert_get_insert_id_failed"
 		p.Err = fmt.Errorf(p.Msg)
 		dhlog.Error(p.Msg)
 		return
 	}
 
-	p.Result["_id"] = p.DocID
+	p.Result.(bson.M)["_id"] = p.DocID
 }
 
 // {{占位符 composition}}

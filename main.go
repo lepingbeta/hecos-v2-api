@@ -2,7 +2,7 @@
  * @Author       : Symphony zhangleping@cezhiqiu.com
  * @Date         : 2024-05-06 05:06:20
  * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-06-04 07:53:12
+ * @LastEditTime : 2024-06-11 00:16:46
  * @FilePath     : /hecos-v2-api/main.go
  * @Description  :
  *
@@ -39,6 +39,9 @@ func main() {
 		dhlog.Info("Failed to connect to MongoDB:", err)
 		return
 	}
+
+	// 显示详细打印信息
+	utils.DebugMsgFlag = true
 
 	// 获取 MongoDB 客户端
 	client := db.GetClient()

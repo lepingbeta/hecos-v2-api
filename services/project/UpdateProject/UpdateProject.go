@@ -1,3 +1,13 @@
+/*
+ * @Author       : Symphony zhangleping@cezhiqiu.com
+ * @Date         : 2024-05-15 11:19:31
+ * @LastEditors  : Symphony zhangleping@cezhiqiu.com
+ * @LastEditTime : 2024-06-11 00:15:50
+ * @FilePath     : /hecos-v2-api/services/project/UpdateProject/UpdateProject.go
+ * @Description  :
+ *
+ * Copyright (c) 2024 by 大合前研, All Rights Reserved.
+ */
 package UpdateProject
 
 import (
@@ -6,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
+	utils "github.com/lepingbeta/go-common-v2-dh-utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
@@ -19,7 +30,7 @@ type UpdateProject struct {
 	Filter       bson.M                // 入参bson.M版 (查询用)
 	DataD        bson.D                // 入参bson.D版 (入库用)
 	C            *gin.Context
-	Result       bson.M
+	Result       any
 	Msg          string
 	MsgKey       string
 	Err          error
@@ -50,7 +61,7 @@ func (p *UpdateProject) CheckExists() {
 	count, err := mongodb.Count("project", filter)
 	if err != nil {
 		p.Err = err
-		p.Msg = "UpdateProject mongodb.Count 查询错误：" + err.Error()
+		p.Msg = utils.DebugMsg("UpdateProject mongodb.Count 查询错误：" + err.Error())
 		p.MsgKey = "project_update_project_CheckExists_query_db_error"
 		dhlog.Error(p.Msg)
 		return
@@ -58,7 +69,7 @@ func (p *UpdateProject) CheckExists() {
 
 	if count > 0 {
 		p.Err = err
-		p.Msg = "project_update_project_CheckExists 没通过"
+		p.Msg = utils.DebugMsg("project_update_project_CheckExists 没通过")
 		p.MsgKey = "project_update_project_CheckExists_filter_error"
 		p.Err = fmt.Errorf(p.Msg)
 		dhlog.Error(p.Msg)
@@ -79,7 +90,7 @@ func (p *UpdateProject) UpdateOne() {
 
 	if p.Err != nil {
 		dhlog.Error(p.Err.Error())
-		p.Msg = "数据更新失败"
+		p.Msg = utils.DebugMsg("数据更新失败：" + p.Err.Error())
 		p.MsgKey = "project_update_project_UpdateOne_to_db_failed"
 		return
 	}

@@ -6,33 +6,41 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
+	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	"github.com/lepingbeta/go-common-v2-dh-http/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"tangxiaoer.shop/dahe/hecos-v2-api/services/project/ProjectList"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
-	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 )
 
 func ProjectListHandler(c *gin.Context) {
 	// 处理登录逻辑
 	// 声明一个变量来存储 JSON 数据
 	var form t.ProjectListParams
+
 	respData := types.ResponseData{
 		Status: types.ResponseStatus.Success,
-		Msg:    "查询成功",
+		Msg:    "添加成功",
+		// MsgKey: "admin_add_user_success",
 		MsgKey: "project_project_list_success",
 		Data:   map[string]interface{}{},
 	}
 
 	if unsafe.Sizeof(form) > 0 {
 		// 使用 BindJSON 方法将 JSON 数据绑定到结构体中
-		if err := c.ShouldBindJSON(&form); err != nil {
+		if err := c.ShouldBindQuery(&form); err != nil {
 			respData = types.ResponseData{
 				Status: types.ResponseStatus.Error,
 				Msg:    err.Error(),
+				// MsgKey: "admin_add_user_bind_json_error",
 				MsgKey: "project_project_list_params_error",
 				Data:   nil,
 			}
+
+			dhlog.Error("参数错误")
+
 			// 如果绑定失败，返回错误信息
 			c.JSON(http.StatusBadRequest, respData)
 			return
@@ -43,6 +51,7 @@ func ProjectListHandler(c *gin.Context) {
 			respData = types.ResponseData{
 				Status: types.ResponseStatus.Error,
 				Msg:    "Cannot get global validator",
+				// MsgKey: "admin_add_user_invalid_validator",
 				MsgKey: "project_project_list_invalid_validator",
 				Data:   nil,
 			}
@@ -68,7 +77,14 @@ func ProjectListHandler(c *gin.Context) {
 			}
 		}
 	}
-	data, msg, msgKey, err := ProjectList.ProjectList(form, c)
+
+	dataM, _ := mongodb.Struct2BsonM(form)
+	pointer := ProjectList.ProjectList{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}}
+	pointer.ProjectList()
+	data := pointer.Result
+	msg := pointer.Msg
+	msgKey := pointer.MsgKey
+	err := pointer.Err
 
 	if err != nil {
 		respData = types.ResponseData{
@@ -91,5 +107,6 @@ func ProjectListHandler(c *gin.Context) {
 
 	respData.Data = data
 
+	// 返回响应
 	c.JSON(http.StatusOK, respData)
 }
