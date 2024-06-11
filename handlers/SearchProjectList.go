@@ -6,13 +6,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/lepingbeta/go-common-v2-dh-http/types"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
-	"github.com/lepingbeta/go-common-v2-dh-http/types"
+	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"tangxiaoer.shop/dahe/hecos-v2-api/services/project/SearchProjectList"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
-	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
 )
 
 func SearchProjectListHandler(c *gin.Context) {
@@ -79,7 +80,7 @@ func SearchProjectListHandler(c *gin.Context) {
 	}
 
 	dataM, _ := mongodb.Struct2BsonM(form)
-	pointer := SearchProjectList.SearchProjectList{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}}
+	pointer := SearchProjectList.SearchProjectList{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}, FindOpts: options.Find()}
 	pointer.SearchProjectList()
 	data := pointer.Result
 	msg := pointer.Msg

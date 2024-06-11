@@ -1,17 +1,6 @@
-/*
- * @Author       : Symphony zhangleping@cezhiqiu.com
- * @Date         : 2024-05-09 18:26:50
- * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-06-11 00:15:07
- * @FilePath     : /hecos-v2-api/services/project/ProjectList/ProjectList.go
- * @Description  :
- *
- * Copyright (c) 2024 by 大合前研, All Rights Reserved.
- */
 package ProjectList
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/gin-gonic/gin"
@@ -37,23 +26,41 @@ type ProjectList struct {
 	Msg          string
 	MsgKey       string
 	Err          error
+	FindOpts     *options.FindOptions
 	DocID        primitive.ObjectID
 }
 
 func (p *ProjectList) ProjectList() {
 
+	p.AddDelete()
+	if p.Err != nil {
+		return
+	}
+	p.FindFields()
+	if p.Err != nil {
+		return
+	}
 	p.GetListWithPager()
 	if p.Err != nil {
 		return
 	} // {{占位符 composition caller}}
-
-	fmt.Println("Hello, my name is")
 }
 
-func (p *ProjectList) GetListWithPager() {
-	if true {
-		p.Filter["is_delete"] = 0
-	}
+func (p *ProjectList) AddDelete() {
+	p.Filter[`is_delete`] = 0
+}
+
+func (p *ProjectList) FindFields() {
+	fieldList := bson.D{{Key: "_id", Value: 1},
+		{Key: "project_name", Value: 1},
+		{Key: "update_callback", Value: 1},
+		{Key: "accessId", Value: 1},
+		{Key: "create_time", Value: 1}}
+	p.FindOpts.SetProjection(fieldList)
+}
+
+// 分页逻辑
+func (p *ProjectList) pagination() (int64, int64) {
 	// 从请求中获取了页码和每页大小
 	page := int64(p.Filter["page"].(int32))
 	pageSize := int64(p.Filter["page_size"].(int32))
@@ -63,14 +70,15 @@ func (p *ProjectList) GetListWithPager() {
 	// 计算跳过的文档数
 	skip := (page - 1) * pageSize
 
-	opts := options.Find().SetLimit(int64(pageSize)).SetSkip(int64(skip))
-	fieldList := bson.D{{Key: "_id", Value: 1},
-		{Key: "project_name", Value: 1},
-		{Key: "update_callback", Value: 1},
-		{Key: "accessId", Value: 1},
-		{Key: "create_time", Value: 1}}
-	opts.SetProjection(fieldList)
-	result, err := mongodb.FindList("project", p.Filter, opts)
+	p.FindOpts.SetLimit(int64(pageSize)).SetSkip(int64(skip))
+	return page, pageSize
+}
+
+// 查询主逻辑
+func (p *ProjectList) GetListWithPager() {
+	page, pageSize := p.pagination()
+
+	result, err := mongodb.FindList("project", p.Filter, p.FindOpts)
 
 	if err != nil {
 		dhlog.Error(err.Error())
@@ -88,6 +96,7 @@ func (p *ProjectList) GetListWithPager() {
 		return
 	}
 
+	// 组合分页信息
 	var finalResult httpTypes.DataList
 	finalResult.Page = page
 	finalResult.Total = int64(math.Ceil(float64(count) / float64(pageSize)))

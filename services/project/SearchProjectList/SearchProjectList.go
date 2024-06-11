@@ -1,8 +1,6 @@
 package SearchProjectList
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
@@ -25,6 +23,7 @@ type SearchProjectList struct {
 	Msg          string
 	MsgKey       string
 	Err          error
+	FindOpts     *options.FindOptions
 	DocID        primitive.ObjectID
 }
 
@@ -46,12 +45,14 @@ func (p *SearchProjectList) SearchProjectList() {
 	if p.Err != nil {
 		return
 	}
+	p.FindFields()
+	if p.Err != nil {
+		return
+	}
 	p.GetList()
 	if p.Err != nil {
 		return
 	} // {{占位符 composition caller}}
-
-	fmt.Println("Hello, my name is")
 }
 
 func (p *SearchProjectList) Convert2ObjectId() {
@@ -82,16 +83,17 @@ func (p *SearchProjectList) RemovefEmpty() {
 	}
 }
 
-func (p *SearchProjectList) GetList() {
-
-	opts := options.Find()
+func (p *SearchProjectList) FindFields() {
 	fieldList := bson.D{{Key: "_id", Value: 1},
 		{Key: "project_name", Value: 1},
 		{Key: "update_callback", Value: 1},
 		{Key: "accessId", Value: 1},
 		{Key: "create_time", Value: 1}}
-	opts.SetProjection(fieldList)
-	result, err := mongodb.FindList("project", p.Filter, opts)
+	p.FindOpts.SetProjection(fieldList)
+}
+
+func (p *SearchProjectList) GetList() {
+	result, err := mongodb.FindList("project", p.Filter, p.FindOpts)
 
 	if err != nil {
 		dhlog.Error(err.Error())

@@ -10,6 +10,7 @@ import (
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	"github.com/lepingbeta/go-common-v2-dh-http/types"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"tangxiaoer.shop/dahe/hecos-v2-api/services/project/ProjectList"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
@@ -22,7 +23,7 @@ func ProjectListHandler(c *gin.Context) {
 
 	respData := types.ResponseData{
 		Status: types.ResponseStatus.Success,
-		Msg:    "添加成功",
+		Msg:    "成功",
 		// MsgKey: "admin_add_user_success",
 		MsgKey: "project_project_list_success",
 		Data:   map[string]interface{}{},
@@ -79,7 +80,7 @@ func ProjectListHandler(c *gin.Context) {
 	}
 
 	dataM, _ := mongodb.Struct2BsonM(form)
-	pointer := ProjectList.ProjectList{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}}
+	pointer := ProjectList.ProjectList{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}, FindOpts: options.Find()}
 	pointer.ProjectList()
 	data := pointer.Result
 	msg := pointer.Msg
