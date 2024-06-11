@@ -40,6 +40,10 @@ func (p *ProjectList) ProjectList() {
 	if p.Err != nil {
 		return
 	}
+	p.FindSort()
+	if p.Err != nil {
+		return
+	}
 	p.GetListWithPager()
 	if p.Err != nil {
 		return
@@ -57,6 +61,21 @@ func (p *ProjectList) FindFields() {
 		{Key: "accessId", Value: 1},
 		{Key: "create_time", Value: 1}}
 	p.FindOpts.SetProjection(fieldList)
+}
+
+func (p *ProjectList) FindSort() {
+	if mongodb.HasKey(p.Filter, "sort_fields") {
+		sortClause, err := mongodb.ParseSortString(p.Filter["sort_fields"].(string))
+		if err != nil {
+			p.Err = err
+			p.Msg = utils.DebugMsg("project_project_list_FindSort error" + err.Error())
+			p.MsgKey = "project_project_list_FindSort_error"
+			dhlog.Error(p.Msg)
+			return
+		}
+		delete(p.Filter, "sort_fields")
+		p.FindOpts.SetSort(sortClause)
+	}
 }
 
 // 分页逻辑
