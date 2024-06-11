@@ -10,32 +10,32 @@ import (
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	"github.com/lepingbeta/go-common-v2-dh-http/types"
 	"go.mongodb.org/mongo-driver/bson"
-	"tangxiaoer.shop/dahe/hecos-v2-api/services/project/DeleteProject"
+	"tangxiaoer.shop/dahe/hecos-v2-api/services/project/SearchProjectList"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
 )
 
-func DeleteProjectHandler(c *gin.Context) {
+func SearchProjectListHandler(c *gin.Context) {
 	// 处理登录逻辑
 	// 声明一个变量来存储 JSON 数据
-	var form t.DeleteProjectParams
+	var form t.SearchProjectListParams
 
 	respData := types.ResponseData{
 		Status: types.ResponseStatus.Success,
-		Msg:    "添加成功",
+		Msg:    "成功",
 		// MsgKey: "admin_add_user_success",
-		MsgKey: "project_delete_project_success",
+		MsgKey: "project_search_project_list_success",
 		Data:   map[string]interface{}{},
 	}
 
 	if unsafe.Sizeof(form) > 0 {
 		// 使用 BindJSON 方法将 JSON 数据绑定到结构体中
-		if err := c.ShouldBindJSON(&form); err != nil {
+		if err := c.ShouldBindQuery(&form); err != nil {
 			respData = types.ResponseData{
 				Status: types.ResponseStatus.Error,
 				Msg:    err.Error(),
 				// MsgKey: "admin_add_user_bind_json_error",
-				MsgKey: "project_delete_project_params_error",
+				MsgKey: "project_search_project_list_params_error",
 				Data:   nil,
 			}
 
@@ -52,7 +52,7 @@ func DeleteProjectHandler(c *gin.Context) {
 				Status: types.ResponseStatus.Error,
 				Msg:    "Cannot get global validator",
 				// MsgKey: "admin_add_user_invalid_validator",
-				MsgKey: "project_delete_project_invalid_validator",
+				MsgKey: "project_search_project_list_invalid_validator",
 				Data:   nil,
 			}
 
@@ -79,8 +79,8 @@ func DeleteProjectHandler(c *gin.Context) {
 	}
 
 	dataM, _ := mongodb.Struct2BsonM(form)
-	pointer := DeleteProject.DeleteProject{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}}
-	pointer.DeleteProject()
+	pointer := SearchProjectList.SearchProjectList{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}}
+	pointer.SearchProjectList()
 	data := pointer.Result
 	msg := pointer.Msg
 	msgKey := pointer.MsgKey

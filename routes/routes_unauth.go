@@ -31,6 +31,7 @@ func setupUnauthRouter(r *gin.Engine) {
 	r.DELETE("/config/delete_config", handlers.DeleteConfigHandler)
 	r.PUT("/user/code_login", handlers.CodeLoginHandler)
 	r.GET("/test/test", handlers.TestHandler)
+	r.GET("/project/search_project_list", handlers.SearchProjectListHandler)
 	// {{占位符}}
 	// r.POST("/auth/add_user", handlers.AddUserHandler)
 	// return r
