@@ -35,6 +35,10 @@ func (p *CreateProject) CreateProject() {
 	if p.Err != nil {
 		return
 	}
+	p.AddDelete()
+	if p.Err != nil {
+		return
+	}
 	p.Insert()
 	if p.Err != nil {
 		return
@@ -75,10 +79,11 @@ func (p *CreateProject) AddAccessIdAndSecret() {
 	// result, err := mongodb.InsertOneBsonD("project", data)
 }
 
+func (p *CreateProject) AddDelete() {
+	p.DataM[`is_delete`] = 0
+}
+
 func (p *CreateProject) Insert() {
-	if true {
-		p.DataM["is_delete"] = 0
-	}
 	bsonD, _ := mongodb.MapToBsonD(p.DataM)
 
 	var result *mongo.InsertOneResult

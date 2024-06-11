@@ -22,7 +22,7 @@ func CreateProjectHandler(c *gin.Context) {
 
 	respData := types.ResponseData{
 		Status: types.ResponseStatus.Success,
-		Msg:    "添加成功",
+		Msg:    "成功",
 		// MsgKey: "admin_add_user_success",
 		MsgKey: "project_create_project_success",
 		Data:   map[string]interface{}{},

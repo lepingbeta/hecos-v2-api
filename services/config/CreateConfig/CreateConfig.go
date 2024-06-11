@@ -1,82 +1,109 @@
-/*
- * @Author       : Symphony zhangleping@cezhiqiu.com
- * @Date         : 2024-05-15 20:05:45
- * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-06-02 14:13:10
- * @FilePath     : /hecos-v2-api/services/config/CreateConfig/CreateConfig.go
- * @Description  :
- *
- * Copyright (c) 2024 by 大合前研, All Rights Reserved.
- */
 package CreateConfig
 
 import (
-	"errors"
+	"fmt"
 
+	"github.com/gin-gonic/gin"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
+	utils "github.com/lepingbeta/go-common-v2-dh-utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
+	// {{占位符 import}}
 )
 
-func preProcessing(params t.CreateConfigParams) (map[string]interface{}, string, string, error) {
+type CreateConfig struct {
+	Params       t.CreateConfigParams // 入参结构体版 （原始版）
+	DataM        bson.M               // 入参bson.M版 (入库用)
+	SliceOfDataM []bson.M             // 入参slice版
+	Filter       bson.M               // 入参bson.M版 (查询用)
+	DataD        bson.D               // 入参bson.D版 (入库用)
+	C            *gin.Context
+	Result       any
+	Msg          string
+	MsgKey       string
+	Err          error
+	DocID        primitive.ObjectID
+}
+
+func (p *CreateConfig) CreateConfig() {
+
+	p.CheckExists()
+	if p.Err != nil {
+		return
+	}
+	p.AddDelete()
+	if p.Err != nil {
+		return
+	}
+	p.Insert()
+	if p.Err != nil {
+		return
+	} // {{占位符 composition caller}}
+
+	fmt.Println("Hello, my name is")
+}
+
+func (p *CreateConfig) CheckExists() {
 	filter := bson.D{
-		{Key: `config_name`, Value: bson.D{{Key: `$eq`, Value: params.ConfigName}}},
-		{Key: `project_id`, Value: bson.D{{Key: `$eq`, Value: params.ProjectId}}},
+		{Key: `config_name`, Value: bson.D{{Key: `$eq`, Value: p.DataM[`config_name`]}}},
+		{Key: `project_id`, Value: bson.D{{Key: `$ne`, Value: p.DataM[`project_id`]}}},
 		// {{占位符}}
 	}
 
 	count, err := mongodb.Count("config", filter)
 	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, "CreateConfig mongodb.Count 查询错误：" + err.Error(), "CreateConfig_query_db_error", err
+		p.Err = err
+		p.Msg = utils.DebugMsg("UpdateProject mongodb.Count 查询错误：" + err.Error())
+		p.MsgKey = "config_create_config_CheckExists_query_db_error"
+		dhlog.Error(p.Msg)
+		return
 	}
 
 	if count > 0 {
-		errMsg := "CreateConfig filter没通过"
-		err = errors.New(errMsg)
-		dhlog.Error(errMsg)
-		return nil, errMsg, "CreateConfig_msg_key_filter_error", err
+		p.Err = err
+		p.Msg = utils.DebugMsg("config_create_config_CheckExists 没通过")
+		p.MsgKey = "config_create_config_CheckExists_filter_error"
+		p.Err = fmt.Errorf(p.Msg)
+		dhlog.Error(p.Msg)
+		return
 	}
 
-	// return nil, "", "", nil
-	// {{占位符 preProcessing}}
-	return nil, "", "", nil
 }
 
-func CreateConfig(params t.CreateConfigParams) (map[string]interface{}, string, string, error) {
-	finalResult, msg, msgKey, err := preProcessing(params)
-	if err != nil {
-		return finalResult, msg, msgKey, err
-	}
+func (p *CreateConfig) AddDelete() {
+	p.DataM[`is_delete`] = 0
+}
 
-	data, msg, msgKey, err := CreateConfigPre(params)
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, msg, msgKey, err
-	}
+func (p *CreateConfig) Insert() {
 
-	result, err := mongodb.InsertOneBsonD("config", data)
+	bsonD, _ := mongodb.MapToBsonD(p.DataM)
 
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, "数据入库失败", "config_create_config_insert_to_db_failed", err
+	var result *mongo.InsertOneResult
+	result, p.Err = mongodb.InsertOneBsonD("config", bsonD)
+
+	if p.Err != nil {
+		dhlog.Error(p.Err.Error())
+		p.Msg = utils.DebugMsg("数据入库失败：" + p.Err.Error())
+		p.MsgKey = "config_create_config_Insert_to_db_failed"
+		return
 	}
 
 	// 获取并打印 _id
 	// 获取并尝试将 _id 转换为 primitive.ObjectID
-	docID, ok := result.InsertedID.(primitive.ObjectID)
+	var ok bool
+	p.DocID, ok = result.InsertedID.(primitive.ObjectID)
 	if !ok {
-		dhlog.Error("Expected the inserted document ID to be a primitive.ObjectID")
-		return nil, "Expected the inserted document ID to be a primitive.ObjectID", "config_create_config_insert_id_error", err
+		p.Msg = utils.DebugMsg("Expected the inserted document ID to be a primitive.ObjectID")
+		p.MsgKey = "config_create_config_Insert_get_insert_id_failed"
+		p.Err = fmt.Errorf(p.Msg)
+		dhlog.Error(p.Msg)
+		return
 	}
 
-	finalResult, msg, msgKey, err = CreateConfigPost(data, docID)
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, msg, msgKey, err
-	}
-
-	return finalResult, msg, "", nil
+	p.Result.(bson.M)["_id"] = p.DocID
 }
+
+// {{占位符 composition}}

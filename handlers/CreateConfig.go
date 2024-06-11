@@ -7,7 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
+	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	"github.com/lepingbeta/go-common-v2-dh-http/types"
+	"go.mongodb.org/mongo-driver/bson"
 	"tangxiaoer.shop/dahe/hecos-v2-api/services/config/CreateConfig"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
@@ -20,7 +22,7 @@ func CreateConfigHandler(c *gin.Context) {
 
 	respData := types.ResponseData{
 		Status: types.ResponseStatus.Success,
-		Msg:    "添加成功",
+		Msg:    "成功",
 		// MsgKey: "admin_add_user_success",
 		MsgKey: "config_create_config_success",
 		Data:   map[string]interface{}{},
@@ -76,7 +78,13 @@ func CreateConfigHandler(c *gin.Context) {
 		}
 	}
 
-	data, msg, msgKey, err := CreateConfig.CreateConfig(form)
+	dataM, _ := mongodb.Struct2BsonM(form)
+	pointer := CreateConfig.CreateConfig{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}}
+	pointer.CreateConfig()
+	data := pointer.Result
+	msg := pointer.Msg
+	msgKey := pointer.MsgKey
+	err := pointer.Err
 
 	if err != nil {
 		respData = types.ResponseData{
