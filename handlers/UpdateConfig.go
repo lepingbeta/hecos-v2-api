@@ -6,11 +6,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
+	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	"github.com/lepingbeta/go-common-v2-dh-http/types"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"tangxiaoer.shop/dahe/hecos-v2-api/services/config/UpdateConfig"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
+	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
 )
 
 func UpdateConfigHandler(c *gin.Context) {
@@ -20,7 +23,7 @@ func UpdateConfigHandler(c *gin.Context) {
 
 	respData := types.ResponseData{
 		Status: types.ResponseStatus.Success,
-		Msg:    "更新成功",
+		Msg:    "成功",
 		// MsgKey: "admin_add_user_success",
 		MsgKey: "config_update_config_success",
 		Data:   map[string]interface{}{},
@@ -76,7 +79,13 @@ func UpdateConfigHandler(c *gin.Context) {
 		}
 	}
 
-	data, msg, msgKey, err := UpdateConfig.UpdateConfig(form, c)
+	dataM, _ := mongodb.Struct2BsonM(form)
+	pointer := UpdateConfig.UpdateConfig{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}, FindOpts: options.Find()}
+	pointer.UpdateConfig()
+	data := pointer.Result
+	msg := pointer.Msg
+	msgKey := pointer.MsgKey
+	err := pointer.Err
 
 	if err != nil {
 		respData = types.ResponseData{

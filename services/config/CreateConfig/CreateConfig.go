@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	// {{占位符 import}}
 )
@@ -25,12 +26,17 @@ type CreateConfig struct {
 	Msg          string
 	MsgKey       string
 	Err          error
+	FindOpts     *options.FindOptions
 	DocID        primitive.ObjectID
 }
 
 func (p *CreateConfig) CreateConfig() {
 
-	p.CheckExists()
+	p.CheckExists__0()
+	if p.Err != nil {
+		return
+	}
+	p.CheckExists__1()
 	if p.Err != nil {
 		return
 	}
@@ -42,14 +48,12 @@ func (p *CreateConfig) CreateConfig() {
 	if p.Err != nil {
 		return
 	} // {{占位符 composition caller}}
-
-	fmt.Println("Hello, my name is")
 }
 
-func (p *CreateConfig) CheckExists() {
+func (p *CreateConfig) CheckExists__0() {
 	filter := bson.D{
 		{Key: `config_name`, Value: bson.D{{Key: `$eq`, Value: p.DataM[`config_name`]}}},
-		{Key: `project_id`, Value: bson.D{{Key: `$ne`, Value: p.DataM[`project_id`]}}},
+		{Key: `project_id`, Value: bson.D{{Key: `$eq`, Value: p.DataM[`project_id`]}}},
 		// {{占位符}}
 	}
 
@@ -57,15 +61,42 @@ func (p *CreateConfig) CheckExists() {
 	if err != nil {
 		p.Err = err
 		p.Msg = utils.DebugMsg("UpdateProject mongodb.Count 查询错误：" + err.Error())
-		p.MsgKey = "config_create_config_CheckExists_query_db_error"
+		p.MsgKey = "config_create_config_CheckExists__0_query_db_error"
 		dhlog.Error(p.Msg)
 		return
 	}
 
 	if count > 0 {
 		p.Err = err
-		p.Msg = utils.DebugMsg("config_create_config_CheckExists 没通过")
-		p.MsgKey = "config_create_config_CheckExists_filter_error"
+		p.Msg = utils.DebugMsg("config_create_config_CheckExists__0 没通过")
+		p.MsgKey = "config_create_config_CheckExists__0_filter_error"
+		p.Err = fmt.Errorf(p.Msg)
+		dhlog.Error(p.Msg)
+		return
+	}
+
+}
+
+func (p *CreateConfig) CheckExists__1() {
+	filter := bson.D{
+		{Key: `codename`, Value: bson.D{{Key: `$eq`, Value: p.DataM[`codename`]}}},
+		{Key: `project_id`, Value: bson.D{{Key: `$eq`, Value: p.DataM[`project_id`]}}},
+		// {{占位符}}
+	}
+
+	count, err := mongodb.Count("config", filter)
+	if err != nil {
+		p.Err = err
+		p.Msg = utils.DebugMsg("UpdateProject mongodb.Count 查询错误：" + err.Error())
+		p.MsgKey = "config_create_config_CheckExists__1_query_db_error"
+		dhlog.Error(p.Msg)
+		return
+	}
+
+	if count > 0 {
+		p.Err = err
+		p.Msg = utils.DebugMsg("config_create_config_CheckExists__1 没通过")
+		p.MsgKey = "config_create_config_CheckExists__1_filter_error"
 		p.Err = fmt.Errorf(p.Msg)
 		dhlog.Error(p.Msg)
 		return
@@ -78,7 +109,6 @@ func (p *CreateConfig) AddDelete() {
 }
 
 func (p *CreateConfig) Insert() {
-
 	bsonD, _ := mongodb.MapToBsonD(p.DataM)
 
 	var result *mongo.InsertOneResult

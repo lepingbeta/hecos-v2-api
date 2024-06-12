@@ -10,6 +10,7 @@ import (
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	"github.com/lepingbeta/go-common-v2-dh-http/types"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"tangxiaoer.shop/dahe/hecos-v2-api/services/config/CreateConfig"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
@@ -79,7 +80,7 @@ func CreateConfigHandler(c *gin.Context) {
 	}
 
 	dataM, _ := mongodb.Struct2BsonM(form)
-	pointer := CreateConfig.CreateConfig{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}}
+	pointer := CreateConfig.CreateConfig{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}, FindOpts: options.Find()}
 	pointer.CreateConfig()
 	data := pointer.Result
 	msg := pointer.Msg
