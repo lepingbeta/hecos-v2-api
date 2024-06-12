@@ -6,11 +6,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/lepingbeta/go-common-v2-dh-http/types"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
-	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
+	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
+	"github.com/lepingbeta/go-common-v2-dh-http/types"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"tangxiaoer.shop/dahe/hecos-v2-api/services/config/DeleteConfig"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
+	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
 )
 
 func DeleteConfigHandler(c *gin.Context) {
@@ -20,7 +23,7 @@ func DeleteConfigHandler(c *gin.Context) {
 
 	respData := types.ResponseData{
 		Status: types.ResponseStatus.Success,
-		Msg:    "更新成功",
+		Msg:    "成功",
 		// MsgKey: "admin_add_user_success",
 		MsgKey: "config_delete_config_success",
 		Data:   map[string]interface{}{},
@@ -76,7 +79,13 @@ func DeleteConfigHandler(c *gin.Context) {
 		}
 	}
 
-	data, msg, msgKey, err := DeleteConfig.DeleteConfig(form, c)
+	dataM, _ := mongodb.Struct2BsonM(form)
+	pointer := DeleteConfig.DeleteConfig{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}, FindOpts: options.Find()}
+	pointer.DeleteConfig()
+	data := pointer.Result
+	msg := pointer.Msg
+	msgKey := pointer.MsgKey
+	err := pointer.Err
 
 	if err != nil {
 		respData = types.ResponseData{

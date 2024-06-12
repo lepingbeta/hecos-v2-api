@@ -35,6 +35,10 @@ func (p *UpdateConfig) UpdateConfig() {
 	if p.Err != nil {
 		return
 	}
+	p.AddDelete()
+	if p.Err != nil {
+		return
+	}
 	p.CheckExists__0()
 	if p.Err != nil {
 		return
@@ -59,10 +63,15 @@ func (p *UpdateConfig) Convert2ObjectId() {
 	}
 }
 
+func (p *UpdateConfig) AddDelete() {
+	p.Filter[`is_delete`] = 0
+}
+
 func (p *UpdateConfig) CheckExists__0() {
 	filter := bson.D{
 		{Key: `config_name`, Value: bson.D{{Key: `$eq`, Value: p.Filter[`config_name`]}}},
 		{Key: `project_id`, Value: bson.D{{Key: `$eq`, Value: p.Filter[`project_id`]}}},
+		{Key: `is_delete`, Value: bson.D{{Key: `$eq`, Value: p.Filter[`is_delete`]}}},
 		{Key: `_id`, Value: bson.D{{Key: `$ne`, Value: p.Filter[`_id`]}}},
 		// {{占位符}}
 	}
@@ -91,6 +100,7 @@ func (p *UpdateConfig) CheckExists__1() {
 	filter := bson.D{
 		{Key: `codename`, Value: bson.D{{Key: `$eq`, Value: p.Filter[`codename`]}}},
 		{Key: `project_id`, Value: bson.D{{Key: `$eq`, Value: p.Filter[`project_id`]}}},
+		{Key: `is_delete`, Value: bson.D{{Key: `$eq`, Value: p.Filter[`is_delete`]}}},
 		{Key: `_id`, Value: bson.D{{Key: `$ne`, Value: p.Filter[`_id`]}}},
 		// {{占位符}}
 	}
@@ -116,8 +126,9 @@ func (p *UpdateConfig) CheckExists__1() {
 }
 
 func (p *UpdateConfig) CutFilter() {
-	p.Filter = mongodb.FilterBsonM(p.Filter, []string{`_id`})
+	p.Filter = mongodb.FilterBsonM(p.Filter, []string{`_id`, `is_delete`})
 	delete(p.DataM, `_id`)
+	delete(p.DataM, `is_delete`)
 }
 
 func (p *UpdateConfig) UpdateOne() {
