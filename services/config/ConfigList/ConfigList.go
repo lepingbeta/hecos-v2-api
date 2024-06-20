@@ -25,6 +25,7 @@ type ConfigList struct {
 	MsgKey       string
 	Err          error
 	FindOpts     *options.FindOptions
+	FindOneOpts  *options.FindOneOptions
 	DocID        primitive.ObjectID
 	// 临时变量3兄弟
 	Temp1 []bson.M
@@ -50,7 +51,7 @@ func (p *ConfigList) ConfigList() {
 	if p.Err != nil {
 		return
 	}
-	p.GetList()
+	p.GetListOrOne()
 	if p.Err != nil {
 		return
 	}
@@ -97,13 +98,13 @@ func (p *ConfigList) FindFields() {
 	p.FindOpts.SetProjection(fieldList)
 }
 
-func (p *ConfigList) GetList() {
+func (p *ConfigList) GetListOrOne() {
 	result, err := mongodb.FindList("config", p.Filter, p.FindOpts)
 
 	if err != nil {
 		dhlog.Error(err.Error())
-		p.Msg = utils.DebugMsg("config_config_list_GetList FindList 错误：" + p.Err.Error())
-		p.MsgKey = "config_config_list_GetList_failed"
+		p.Msg = utils.DebugMsg("config_config_list_GetListOrOne FindList 错误：" + p.Err.Error())
+		p.MsgKey = "config_config_list_GetListOrOne_failed"
 		return
 	}
 
