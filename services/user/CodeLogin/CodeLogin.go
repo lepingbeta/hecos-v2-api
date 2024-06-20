@@ -1,7 +1,6 @@
 package CodeLogin
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -10,6 +9,7 @@ import (
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	middleware "github.com/lepingbeta/go-common-v2-dh-middleware"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
+	utils "github.com/lepingbeta/go-common-v2-dh-utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -18,101 +18,67 @@ import (
 	// {{占位符 import}}
 )
 
-func preProcessing(params t.CodeLoginParams, filterEmpty bson.M, resultEmpty any, c *gin.Context) (bson.M, any, string, string, error) {
-	filter, _ := mongodb.Struct2BsonM(params)
-	var result = bson.M{}
-	var msg, msgKey string = "", ""
-	var err error = nil
-
-	filter, result, msg, msgKey, err = code2login(params, filter, result, c)
-	if err != nil {
-		return filter, result, msg, msgKey, err
-	}
-	// {{占位符 preProcessing}}
-
-	return filter, result, msg, msgKey, err
+type CodeLogin struct {
+	Params       t.CodeLoginParams // 入参结构体版 （原始版）
+	DataM        bson.M            // 入参bson.M版 (入库用)
+	SliceOfDataM []bson.M          // 入参slice版
+	Filter       bson.M            // 入参bson.M版 (查询用)
+	DataD        bson.D            // 入参bson.D版 (入库用)
+	C            *gin.Context
+	Result       any
+	Msg          string
+	MsgKey       string
+	Err          error
+	FindOpts     *options.FindOptions
+	FindOneOpts  *options.FindOneOptions
+	DocID        primitive.ObjectID
+	// 临时变量3兄弟
+	Temp1 []bson.M
+	Temp2 any
+	Temp3 any
 }
 
-func CodeLogin(params t.CodeLoginParams, c *gin.Context) (any, string, string, error) {
-	filter, finalResult, msg, msgKey, err := preProcessing(params, nil, nil, c)
-	// {{bsonD holder}}
-	if err != nil {
-		return finalResult, msg, msgKey, err
-	}
+func (p *CodeLogin) CodeLogin() {
 
-	filter, msg, msgKey, err = CodeLoginPre(filter, c)
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, msg, msgKey, err
+	p.Code2Login()
+	if p.Err != nil {
+		return
 	}
-
-	fieldList := bson.D{
-		{Key: "_id", Value: 1},
-		{Key: "account", Value: 1},
-	}
-	// 创建Find选项，设置Projection
-	findOptions := options.FindOne()
-	findOptions.SetProjection(fieldList)
-	result, err := mongodb.FindOne("user", filter, findOptions)
-
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, err.Error(), "user_code_login_find_one_error", err
-	}
-
-	// 后置处理器
-	filter, postResult, msg, msgKey, err := postProcessing(params, filter, result, c)
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, msg, msgKey, err
-	}
-
-	finalResult, msg, msgKey, err = CodeLoginPost(params, filter, postResult, c)
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, msg, msgKey, err
-	}
-
-	return finalResult, msg, msgKey, err
+	p.AddJwtToken()
+	if p.Err != nil {
+		return
+	} // {{占位符 composition caller}}
 }
 
-func postProcessing(params t.CodeLoginParams, filter bson.M, result any, c *gin.Context) (bson.M, any, string, string, error) {
-	msg, msgKey := "user_code_login Post Processing Success", "user_code_login_post_processing_success"
-	var err error = nil
-	filter, result, msg, msgKey, err = addJwtToken(params, filter, result, c)
-	if err != nil {
-		return filter, result, msg, msgKey, err
-	}
-	// {{占位符 postProcessing}}
-	return filter, result, msg, msgKey, err
-}
-func code2login(params t.CodeLoginParams, filter bson.M, result any, c *gin.Context) (bson.M, bson.M, string, string, error) {
-	resultMap, ok := result.(bson.M)
-	if !ok {
-		errMsg := "result 数据转换为bson.M失败"
-		dhlog.Error(errMsg)
-		return filter, resultMap, errMsg, "user_code_login_code2login_conver2bson.M_failed", errors.New(errMsg)
-	}
+func (p *CodeLogin) Code2Login() {
 
 	// 定义要POST的URL
 	urlPrefix := os.Getenv("OAUTH2_URL_PREFIX")
 	urlCode2token := urlPrefix + "/oauth2/code2_token"
 	urlAt2userinfo := urlPrefix + "/oauth2/oauth2_get_userinfo"
 	urlRefreshToken := urlPrefix + "/oauth2/refresh_token"
-	dhlog.DebugAny(filter)
+	dhlog.DebugAny(p.Filter)
 	// 定义要发送的数据
 	reqTokenParams := map[string]interface{}{
-		"code": filter["code"],
+		"code": p.Filter["code"],
 	}
-	respToken, err := dhhttp.PostJSON2Map(urlCode2token, reqTokenParams)
-	if err != nil {
-		dhlog.Error(err.Error())
-		return filter, resultMap, err.Error(), respToken["msg_key"].(string), err
+
+	var respToken map[string]any
+	respToken, p.Err = dhhttp.PostJSON2Map(urlCode2token, reqTokenParams)
+	if p.Err != nil {
+		dhlog.Error(p.Err.Error())
+		p.Msg = utils.DebugMsg(p.Err.Error())
+		p.MsgKey = "user_code_login_Code2Login_code2_token_failed"
+		return
+		// return filter, resultMap, err.Error(), respToken["msg_key"].(string), err
 	}
 
 	if respToken["status"].(string) != "success" {
 		dhlog.Error(respToken["msg"].(string))
-		return filter, resultMap, respToken["msg"].(string), respToken["msg_key"].(string), fmt.Errorf(respToken["msg"].(string))
+		p.Err = fmt.Errorf(respToken["msg"].(string))
+		p.Msg = utils.DebugMsg(p.Err.Error())
+		p.MsgKey = "user_code_login_Code2Login_code2_token_error_status"
+		return
 	}
 
 	respTokenData := respToken["data"].(map[string]any)
@@ -123,11 +89,15 @@ func code2login(params t.CodeLoginParams, filter bson.M, result any, c *gin.Cont
 	reqUserinfoParams := map[string]interface{}{
 		"access_token": accessToken,
 	}
-	respUserinfo, err := dhhttp.PutJSON2Map(urlAt2userinfo, reqUserinfoParams)
+	var respUserinfo map[string]any
+	respUserinfo, p.Err = dhhttp.PutJSON2Map(urlAt2userinfo, reqUserinfoParams)
 	dhlog.DebugAny(respUserinfo)
-	if err != nil {
-		dhlog.Error(err.Error())
-		return filter, resultMap, err.Error(), respUserinfo["msg_key"].(string), err
+	if p.Err != nil {
+		dhlog.Error(p.Err.Error())
+		// return filter, resultMap, p.Err.Error(), respUserinfo["msg_key"].(string), err
+		p.Msg = utils.DebugMsg(p.Err.Error())
+		p.MsgKey = "user_code_login_Code2Login_oauth2_get_userinfo_error"
+		return
 	}
 
 	if respUserinfo["status"].(string) != "success" {
@@ -136,10 +106,14 @@ func code2login(params t.CodeLoginParams, filter bson.M, result any, c *gin.Cont
 			reqNewTokenParams := map[string]interface{}{
 				"refresh_token": refreshToken,
 			}
-			respNewToken, err := dhhttp.PostJSON2Map(urlRefreshToken, reqNewTokenParams)
-			if err != nil {
-				dhlog.Error(err.Error())
-				return filter, resultMap, err.Error(), respNewToken["msg_key"].(string), err
+			var respNewToken map[string]any
+			respNewToken, p.Err = dhhttp.PostJSON2Map(urlRefreshToken, reqNewTokenParams)
+			if p.Err != nil {
+				dhlog.Error(p.Err.Error())
+				// return filter, resultMap, p.Err.Error(), respUserinfo["msg_key"].(string), err
+				p.Msg = utils.DebugMsg(p.Err.Error())
+				p.MsgKey = "user_code_login_Code2Login_refresh_token_error"
+				return
 			}
 			respNewTokenData := respNewToken["data"].(map[string]any)
 			accessToken = respNewTokenData["access_token"].(string)
@@ -149,14 +123,20 @@ func code2login(params t.CodeLoginParams, filter bson.M, result any, c *gin.Cont
 			reqUserinfoParams := map[string]interface{}{
 				"access_token": accessToken,
 			}
-			respUserinfo, err = dhhttp.PutJSON2Map(urlAt2userinfo, reqUserinfoParams)
-			if err != nil {
-				dhlog.Error(err.Error())
-				return filter, resultMap, err.Error(), respUserinfo["msg_key"].(string), err
+			respUserinfo, p.Err = dhhttp.PutJSON2Map(urlAt2userinfo, reqUserinfoParams)
+			if p.Err != nil {
+				dhlog.Error(p.Err.Error())
+				// return filter, resultMap, p.Err.Error(), respUserinfo["msg_key"].(string), err
+				p.Msg = utils.DebugMsg(p.Err.Error())
+				p.MsgKey = "user_code_login_Code2Login_oauth2_get_userinfo_error2"
+				return
 			}
 		} else {
 			dhlog.Error(respUserinfo["msg"].(string))
-			return filter, resultMap, respUserinfo["msg"].(string), respUserinfo["msg_key"].(string), fmt.Errorf(respUserinfo["msg"].(string))
+			// return filter, resultMap, p.Err.Error(), respUserinfo["msg_key"].(string), err
+			p.Msg = utils.DebugMsg(respUserinfo["msg"].(string))
+			p.MsgKey = "user_code_login_Code2Login_oauth2_get_userinfo_error3"
+			return
 		}
 	}
 
@@ -164,11 +144,14 @@ func code2login(params t.CodeLoginParams, filter bson.M, result any, c *gin.Cont
 	respUserinfoData := respUserinfo["data"].(map[string]any)
 	userFilter := bson.M{}
 	userFilter["iuc_id"] = respUserinfoData["_id"].(string)
-	count, err := mongodb.Count("user", userFilter)
+	var count int64
+	count, p.Err = mongodb.Count("user", userFilter)
 
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, nil, err.Error(), "user_code_login_code2login_count_in_db_error", err
+	if p.Err != nil {
+		dhlog.Error(p.Err.Error())
+		p.Msg = utils.DebugMsg(p.Err.Error())
+		p.MsgKey = "user_code_login_Code2Login_query_user_error"
+		return
 	}
 
 	// 查询不到此用户，创建一个新用户
@@ -180,38 +163,53 @@ func code2login(params t.CodeLoginParams, filter bson.M, result any, c *gin.Cont
 		delete(userinfo, "_id")
 		delete(userinfo, "create_time")
 		delete(userinfo, "update_time")
-		userDbData, err := mongodb.MapToBsonD(userinfo)
-		if err != nil {
-			dhlog.Error(err.Error())
-			return userFilter, nil, "数据转成bson.D失败: " + err.Error(), "user_code_login_code2login_mapToBsonD_failed", err
+		var userDbData bson.D
+		userDbData, p.Err = mongodb.MapToBsonD(userinfo)
+		if p.Err != nil {
+			dhlog.Error(p.Err.Error())
+			p.Msg = utils.DebugMsg("数据转成bson.D失败: " + p.Err.Error())
+			p.MsgKey = "user_code_login_Code2Login_mapToBsonD_failed"
+			return
 		}
 
-		_, err = mongodb.InsertOneBsonD("user", userDbData)
+		_, p.Err = mongodb.InsertOneBsonD("user", userDbData)
 
-		if err != nil {
-			dhlog.Error(err.Error())
-			return userFilter, nil, "数据入库失败: " + err.Error(), "user_code_login_code2login_insert_to_db_failed", err
+		if p.Err != nil {
+			dhlog.Error(p.Err.Error())
+			p.Msg = utils.DebugMsg("数据转成bson.D失败: " + p.Err.Error())
+			p.MsgKey = "user_code_login_Code2Login_InsertOneBsonD_failed"
+			return
+
+			// dhlog.Error(err.Error())
+			// return userFilter, nil, "数据入库失败: " + err.Error(), "user_code_login_code2login_insert_to_db_failed", err
 		}
 	}
 
-	return userFilter, nil, "code登录成功", "user_code_login_code2login_success", nil
+	fieldList := bson.D{
+		{Key: "_id", Value: 1},
+		{Key: "account", Value: 1},
+	}
+	// 创建Find选项，设置Projection
+	findOptions := options.FindOne()
+	findOptions.SetProjection(fieldList)
+	p.Result, p.Err = mongodb.FindOne("user", userFilter, findOptions)
+	if p.Err != nil {
+		dhlog.Error(p.Err.Error())
+		p.Msg = utils.DebugMsg("FindOne 失败: " + p.Err.Error())
+		p.MsgKey = "user_code_login_Code2Login_FindOne_failed"
+		return
+	}
 }
 
-func addJwtToken(params t.CodeLoginParams, filter bson.M, result any, c *gin.Context) (bson.M, bson.M, string, string, error) {
-	resultMap, ok := result.(bson.M)
-	if !ok {
-		errMsg := "result 数据转换为bson.M失败"
-		dhlog.Error(errMsg)
-		return filter, resultMap, errMsg, "user_code_login_addToken_conver2bson.M_failed", errors.New(errMsg)
+func (p *CodeLogin) AddJwtToken() {
+
+	p.Result.(bson.M)["token"], p.Result.(bson.M)["refreshToken"], p.Err = middleware.JWTGenerateToken(config.JwtSecret, config.JwtRefreshSecret, p.Result.(bson.M)["_id"].(primitive.ObjectID).Hex(), p.Result.(bson.M)["account"].(string), config.JwtExpSec, config.JwtRefreshSec)
+	if p.Err != nil {
+		dhlog.Error(p.Err.Error())
+		p.Msg = utils.DebugMsg(p.Err.Error())
+		p.MsgKey = "user_code_login_AddJwtToken_JWTGenerateToken_error"
+		return
 	}
-	var err error
-	resultMap["token"], resultMap["refreshToken"], err = middleware.JWTGenerateToken(config.JwtSecret, config.JwtRefreshSecret, resultMap["_id"].(primitive.ObjectID).Hex(), resultMap["account"].(string), config.JwtExpSec, config.JwtRefreshSec)
-	if err != nil {
-		errMsg := err.Error()
-		dhlog.Error(errMsg)
-		return filter, resultMap, errMsg, "user_code_login_addToken_failed", err
-	}
-	return filter, resultMap, "生成token成功", "user_code_login_addToken_success", nil
 }
 
-// {{占位符 processer}}
+// {{占位符 composition}}
