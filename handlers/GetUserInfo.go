@@ -6,20 +6,25 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
+	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	"github.com/lepingbeta/go-common-v2-dh-http/types"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"tangxiaoer.shop/dahe/hecos-v2-api/services/user/GetUserInfo"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
-	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 )
 
 func GetUserInfoHandler(c *gin.Context) {
 	// 处理登录逻辑
 	// 声明一个变量来存储 JSON 数据
 	var form t.EmptyParams
+
 	respData := types.ResponseData{
 		Status: types.ResponseStatus.Success,
-		Msg:    "查询成功",
+		Msg:    "成功",
+		// MsgKey: "admin_add_user_success",
 		MsgKey: "user_get_user_info_success",
 		Data:   map[string]interface{}{},
 	}
@@ -30,9 +35,13 @@ func GetUserInfoHandler(c *gin.Context) {
 			respData = types.ResponseData{
 				Status: types.ResponseStatus.Error,
 				Msg:    err.Error(),
+				// MsgKey: "admin_add_user_bind_json_error",
 				MsgKey: "user_get_user_info_params_error",
 				Data:   nil,
 			}
+
+			dhlog.Error("参数错误")
+
 			// 如果绑定失败，返回错误信息
 			c.JSON(http.StatusBadRequest, respData)
 			return
@@ -43,6 +52,7 @@ func GetUserInfoHandler(c *gin.Context) {
 			respData = types.ResponseData{
 				Status: types.ResponseStatus.Error,
 				Msg:    "Cannot get global validator",
+				// MsgKey: "admin_add_user_invalid_validator",
 				MsgKey: "user_get_user_info_invalid_validator",
 				Data:   nil,
 			}
@@ -68,7 +78,14 @@ func GetUserInfoHandler(c *gin.Context) {
 			}
 		}
 	}
-	data, msg, msgKey, err := GetUserInfo.GetUserInfo(form, c)
+
+	dataM, _ := mongodb.Struct2BsonM(form)
+	pointer := GetUserInfo.GetUserInfo{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}, FindOpts: options.Find(), FindOneOpts: options.FindOne()}
+	pointer.GetUserInfo()
+	data := pointer.Result
+	msg := pointer.Msg
+	msgKey := pointer.MsgKey
+	err := pointer.Err
 
 	if err != nil {
 		respData = types.ResponseData{
@@ -91,5 +108,6 @@ func GetUserInfoHandler(c *gin.Context) {
 
 	respData.Data = data
 
+	// 返回响应
 	c.JSON(http.StatusOK, respData)
 }

@@ -1,86 +1,88 @@
-/*
- * @Author       : Symphony zhangleping@cezhiqiu.com
- * @Date         : 2024-06-04 07:38:28
- * @LastEditors  : Symphony zhangleping@cezhiqiu.com
- * @LastEditTime : 2024-06-04 22:28:31
- * @FilePath     : /hecos-v2-api/services/user/GetUserInfo/GetUserInfo.go
- * @Description  :
- *
- * Copyright (c) 2024 by 大合前研, All Rights Reserved.
- */
 package GetUserInfo
 
 import (
 	"github.com/gin-gonic/gin"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
+	utils "github.com/lepingbeta/go-common-v2-dh-utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	// {{占位符 import}}
 )
 
-func preProcessing(params t.EmptyParams, filterEmpty bson.M, resultEmpty any, c *gin.Context) (bson.M, any, string, string, error) {
-	filter, _ := mongodb.Struct2BsonM(params)
-	var result = bson.M{}
-	var msg, msgKey string = "", ""
-	var err error = nil
-
-	// {{占位符 preProcessing}}
-
-	return filter, result, msg, msgKey, err
+type GetUserInfo struct {
+	Params       t.EmptyParams // 入参结构体版 （原始版）
+	DataM        bson.M        // 入参bson.M版 (入库用)
+	SliceOfDataM []bson.M      // 入参slice版
+	Filter       bson.M        // 入参bson.M版 (查询用)
+	DataD        bson.D        // 入参bson.D版 (入库用)
+	C            *gin.Context
+	Result       any
+	Msg          string
+	MsgKey       string
+	Err          error
+	FindOpts     *options.FindOptions
+	FindOneOpts  *options.FindOneOptions
+	DocID        primitive.ObjectID
+	// 临时变量3兄弟
+	Temp1 []bson.M
+	Temp2 any
+	Temp3 any
 }
 
-func GetUserInfo(params t.EmptyParams, c *gin.Context) (any, string, string, error) {
-	filter, finalResult, msg, msgKey, err := preProcessing(params, nil, nil, c)
-	// {{bsonD holder}}
-	if err != nil {
-		return finalResult, msg, msgKey, err
-	}
+func (p *GetUserInfo) GetUserInfo() {
 
-	filter, msg, msgKey, err = GetUserInfoPre(filter, c)
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, msg, msgKey, err
+	p.PrepareCurrentUser()
+	if p.Err != nil {
+		return
 	}
+	p.CutFilter()
+	if p.Err != nil {
+		return
+	}
+	p.FindFields()
+	if p.Err != nil {
+		return
+	}
+	p.GetListOrOne()
+	if p.Err != nil {
+		return
+	} // {{占位符 composition caller}}
+}
 
-	fieldList := bson.D{
-		{Key: "_id", Value: 1},
+func (p *GetUserInfo) PrepareCurrentUser() {
+	uid, _ := p.C.Get("user_id")
+	account, _ := p.C.Get("account")
+	p.Filter["_id"] = mongodb.ObjectIDFromHex(uid.(string))
+	p.Filter["account"] = account
+}
+
+func (p *GetUserInfo) CutFilter() {
+	p.Filter = mongodb.FilterBsonM(p.Filter, []string{`_id`})
+	delete(p.DataM, `_id`)
+}
+
+func (p *GetUserInfo) FindFields() {
+	fieldList := bson.D{{Key: "_id", Value: 1},
 		{Key: "account", Value: 1},
 		{Key: "nickname", Value: 1},
-		{Key: "roles", Value: 1},
-	}
-	// 创建Find选项，设置Projection
-	findOptions := options.FindOne()
-	findOptions.SetProjection(fieldList)
-	result, err := mongodb.FindOne("user", filter, findOptions)
-
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, err.Error(), "user_get_user_info_find_one_error", err
-	}
-
-	// 后置处理器
-	filter, postResult, msg, msgKey, err := postProcessing(params, filter, result, c)
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, msg, msgKey, err
-	}
-
-	finalResult, msg, msgKey, err = GetUserInfoPost(params, filter, postResult, c)
-	if err != nil {
-		dhlog.Error(err.Error())
-		return nil, msg, msgKey, err
-	}
-
-	return finalResult, msg, msgKey, err
+		{Key: "roles", Value: 1}}
+	p.FindOneOpts.SetProjection(fieldList)
 }
 
-func postProcessing(params t.EmptyParams, filter bson.M, result any, c *gin.Context) (bson.M, any, string, string, error) {
-	msg, msgKey := "user_get_user_info Post Processing Success", "user_get_user_info_post_processing_success"
-	var err error = nil
-	// {{占位符 postProcessing}}
-	return filter, result, msg, msgKey, err
+func (p *GetUserInfo) GetListOrOne() {
+	result, err := mongodb.FindOne("user", p.Filter, p.FindOneOpts)
+
+	if err != nil {
+		dhlog.Error(err.Error())
+		p.Msg = utils.DebugMsg("user_get_user_info_GetListOrOne FindOne 错误：" + p.Err.Error())
+		p.MsgKey = "user_get_user_info_GetListOrOne_failed"
+		return
+	}
+
+	p.Result = result
 }
 
-// {{占位符 processer}}
+// {{占位符 composition}}
