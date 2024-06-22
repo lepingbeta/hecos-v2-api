@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	// {{占位符 import}}
@@ -26,7 +27,13 @@ type CreateProject struct {
 	Msg          string
 	MsgKey       string
 	Err          error
+	FindOpts     *options.FindOptions
+	FindOneOpts  *options.FindOneOptions
 	DocID        primitive.ObjectID
+	// 临时变量3兄弟
+	Temp1 []bson.M
+	Temp2 any
+	Temp3 any
 }
 
 func (p *CreateProject) CreateProject() {
@@ -43,8 +50,6 @@ func (p *CreateProject) CreateProject() {
 	if p.Err != nil {
 		return
 	} // {{占位符 composition caller}}
-
-	fmt.Println("Hello, my name is")
 }
 
 func (p *CreateProject) AddAccessIdAndSecret() {
@@ -52,14 +57,14 @@ func (p *CreateProject) AddAccessIdAndSecret() {
 	p.Result.(bson.M)["accessId"], err = utils.GenerateAccessID(16)
 	if err != nil {
 		p.Msg = err.Error()
-		p.MsgKey = "project_create_project_AddAccessIdAndSecret_GenerateAccessID_error"
+		p.MsgKey = "project_create_project_AddAccessIdAndSecretGenerateAccessID_error"
 		dhlog.Error(err.Error())
 		return
 	}
 	p.Result.(bson.M)["accessSecret"], err = utils.GenerateAccessSecret()
 	if err != nil {
 		p.Msg = err.Error()
-		p.MsgKey = "project_create_project_AddAccessIdAndSecret_GenerateAccessSecret_error"
+		p.MsgKey = "project_create_project_AddAccessIdAndSecretGenerateAccessSecret_error"
 		dhlog.Error(err.Error())
 		return
 	}
@@ -70,7 +75,7 @@ func (p *CreateProject) AddAccessIdAndSecret() {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(p.Result.(bson.M)["accessSecret"].(string)), bcrypt.DefaultCost)
 	if err != nil {
 		p.Msg = err.Error()
-		p.MsgKey = "project_create_project_AddAccessIdAndSecret_hash_password_failed"
+		p.MsgKey = "project_create_project_AddAccessIdAndSecrethash_password_failed"
 		dhlog.Error(err.Error())
 		return
 	}
