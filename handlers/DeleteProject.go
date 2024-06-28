@@ -6,13 +6,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/lepingbeta/go-common-v2-dh-http/types"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
-	"github.com/lepingbeta/go-common-v2-dh-http/types"
+	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"tangxiaoer.shop/dahe/hecos-v2-api/services/project/DeleteProject"
 	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
-	dhvalidator "github.com/lepingbeta/go-common-v2-dh-validator"
 )
 
 func DeleteProjectHandler(c *gin.Context) {
@@ -22,7 +23,7 @@ func DeleteProjectHandler(c *gin.Context) {
 
 	respData := types.ResponseData{
 		Status: types.ResponseStatus.Success,
-		Msg:    "添加成功",
+		Msg:    "成功",
 		// MsgKey: "admin_add_user_success",
 		MsgKey: "project_delete_project_success",
 		Data:   map[string]interface{}{},
@@ -60,6 +61,7 @@ func DeleteProjectHandler(c *gin.Context) {
 			return
 		}
 
+		// 对参数进行简单验证
 		if err := v.Struct(form); err != nil {
 			if errs, ok := err.(validator.ValidationErrors); ok {
 				for _, e := range errs {
@@ -79,33 +81,44 @@ func DeleteProjectHandler(c *gin.Context) {
 	}
 
 	dataM, _ := mongodb.Struct2BsonM(form)
-	pointer := DeleteProject.DeleteProject{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}}
-	pointer.DeleteProject()
-	data := pointer.Result
-	msg := pointer.Msg
-	msgKey := pointer.MsgKey
-	err := pointer.Err
+	pointer := DeleteProject.DeleteProject{Params: form, C: c, DataM: dataM, Filter: dataM, Result: bson.M{}, FindOpts: options.Find(), FindOneOpts: options.FindOne()}
 
-	if err != nil {
+	// 对参数进行复杂验证
+	pointer.DeleteProjectValidator2()
+	if pointer.Err != nil {
 		respData = types.ResponseData{
 			Status: types.ResponseStatus.Error,
-			MsgKey: msgKey,
-			Msg:    err.Error() + " || " + msg,
-			Data:   data,
+			MsgKey: pointer.MsgKey,
+			Msg:    pointer.Err.Error() + " || " + pointer.Msg,
+			Data:   pointer.Result,
+		}
+		// 返回响应
+		c.JSON(http.StatusOK, respData)
+		return
+	}
+
+	// 对数据进行处理
+	pointer.DeleteProject()
+	if pointer.Err != nil {
+		respData = types.ResponseData{
+			Status: types.ResponseStatus.Error,
+			MsgKey: pointer.MsgKey,
+			Msg:    pointer.Err.Error() + " || " + pointer.Msg,
+			Data:   pointer.Result,
 		}
 	}
 
 	// 写入成功消息
-	if len(msg) > 0 {
-		respData.Msg = msg
+	if len(pointer.Msg) > 0 {
+		respData.Msg = pointer.Msg
 	}
 
 	// 写入成功消息key
-	if len(msgKey) > 0 {
-		respData.MsgKey = msgKey
+	if len(pointer.MsgKey) > 0 {
+		respData.MsgKey = pointer.MsgKey
 	}
 
-	respData.Data = data
+	respData.Data = pointer.Result
 
 	// 返回响应
 	c.JSON(http.StatusOK, respData)

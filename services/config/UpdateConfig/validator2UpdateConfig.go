@@ -2,59 +2,36 @@ package UpdateConfig
 
 import (
 	"fmt"
-
-	"github.com/gin-gonic/gin"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	utils "github.com/lepingbeta/go-common-v2-dh-utils"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	// {{占位符 import}}
 )
 
-type UpdateConfig struct {
-	Params       t.UpdateConfigParams // 入参结构体版 （原始版）
-	DataM        bson.M               // 入参bson.M版 (入库用)
-	SliceOfDataM []bson.M             // 入参slice版
-	Filter       bson.M               // 入参bson.M版 (查询用)
-	DataD        bson.D               // 入参bson.D版 (入库用)
-	C            *gin.Context
-	Result       any
-	Msg          string
-	MsgKey       string
-	Err          error
-	FindOpts     *options.FindOptions
-	DocID        primitive.ObjectID
-}
-
-func (p *UpdateConfig) UpdateConfig() {
+func (p *UpdateConfig) UpdateConfigValidator2() {
+	dhlog.Info("UpdateConfigValidator2")
 
 	p.Convert2ObjectId()
 	if p.Err != nil {
 		return
 	}
+
 	p.AddDelete()
 	if p.Err != nil {
 		return
 	}
+
 	p.CheckExists__0()
 	if p.Err != nil {
 		return
 	}
+
 	p.CheckExists__1()
 	if p.Err != nil {
 		return
 	}
-	p.CutFilter()
-	if p.Err != nil {
-		return
-	}
-	p.UpdateOne()
-	if p.Err != nil {
-		return
-	} // {{占位符 composition caller}}
+	// {{占位符 validator2 caller}}
 }
 
 func (p *UpdateConfig) Convert2ObjectId() {
@@ -125,23 +102,4 @@ func (p *UpdateConfig) CheckExists__1() {
 
 }
 
-func (p *UpdateConfig) CutFilter() {
-	p.Filter = mongodb.FilterBsonM(p.Filter, []string{`_id`, `is_delete`})
-	delete(p.DataM, `_id`)
-	delete(p.DataM, `is_delete`)
-}
-
-func (p *UpdateConfig) UpdateOne() {
-	_, p.Err = mongodb.UpdateWithUpdateTime("config", "UpdateOne", p.Filter, p.DataM)
-
-	if p.Err != nil {
-		dhlog.Error(p.Err.Error())
-		p.Msg = utils.DebugMsg("数据更新失败：" + p.Err.Error())
-		p.MsgKey = "config_update_config_UpdateOne_to_db_failed"
-		return
-	}
-
-	p.Result = p.DataM
-}
-
-// {{占位符 composition}}
+// {{占位符 validator2}}

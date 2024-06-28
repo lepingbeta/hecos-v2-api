@@ -1,31 +1,12 @@
 package DeleteConfig
 
 import (
-	"github.com/gin-gonic/gin"
 	dhlog "github.com/lepingbeta/go-common-v2-dh-log"
 	mongodb "github.com/lepingbeta/go-common-v2-dh-mongo"
 	utils "github.com/lepingbeta/go-common-v2-dh-utils"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	t "tangxiaoer.shop/dahe/hecos-v2-api/types"
 	// {{占位符 import}}
 )
-
-type DeleteConfig struct {
-	Params       t.DeleteConfigParams // 入参结构体版 （原始版）
-	DataM        bson.M               // 入参bson.M版 (入库用)
-	SliceOfDataM []bson.M             // 入参slice版
-	Filter       bson.M               // 入参bson.M版 (查询用)
-	DataD        bson.D               // 入参bson.D版 (入库用)
-	C            *gin.Context
-	Result       any
-	Msg          string
-	MsgKey       string
-	Err          error
-	FindOpts     *options.FindOptions
-	DocID        primitive.ObjectID
-}
 
 func (p *DeleteConfig) DeleteConfig() {
 

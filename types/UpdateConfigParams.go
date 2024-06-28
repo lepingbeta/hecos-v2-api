@@ -1,6 +1,5 @@
 package types
 
-
 type UpdateConfigParams struct {
 	// 配置名
 	ConfigName string `bson:"config_name" json:"config_name" validate:"required,min=3,max=50" `
@@ -19,4 +18,3 @@ type UpdateConfigParams struct {
 	// 项目id
 	ProjectId string `bson:"project_id" json:"project_id" validate:"required,mongoId,findInDb=needExists project _id update_config_project_id_find_in_db_err is_not_delete" `
 }
-

@@ -1,6 +1,5 @@
 package types
 
-
 type CreateConfigParams struct {
 	// 配置名
 	ConfigName string `bson:"config_name" json:"config_name" validate:"required,min=2,max=50" `
@@ -17,4 +16,3 @@ type CreateConfigParams struct {
 	// 主题名称
 	ThemeName string `bson:"theme_name" json:"theme_name" validate:"required" `
 }
-
